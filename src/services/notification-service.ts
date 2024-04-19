@@ -46,6 +46,7 @@ query getNotifications($timestamp: Int!) {
 // Fetch notifications from the subgraph older than given timestamp
 export async function getAllNotifications (timestamp: number): Promise<Notification[]> {
   console.log("Fetching notifications older than:", timestamp);
+  // TODO log readable form date also
 
   const data = await graphStakingClient.request<
     getNotificationsResult
@@ -61,6 +62,17 @@ export async function getAllNotifications (timestamp: number): Promise<Notificat
 // by checking investment details in the EarlyStageService,
 async function filterAccountNotifications (account: string, notifications: Notification[]): Promise<Notification[]> {
   const accountNotifications = [];
+
+  // Helper function to push notification if account is involved
+  const pushIfInvolved = async (notification: Notification) => {
+    const involved = await EarlyStageService.isAccountInvolved(
+      notification.projectNest,
+      account,
+    );
+    if (involved) {
+      accountNotifications.push(notification);
+    }
+  };
 
   for (const notification of notifications) {
     switch (notification.eventType) {
@@ -83,16 +95,9 @@ async function filterAccountNotifications (account: string, notifications: Notif
           break;
         }
 
-        case EventType.MovedToInvestmentCommittee: {
-          const involved = await EarlyStageService.isAccountInvolved(
-            notification.projectNest,
-            account,
-          );
-          if (involved) {
-            accountNotifications.push(notification);
-          }
+        case EventType.MovedToInvestmentCommittee:
+          await pushIfInvolved(notification);
           break;
-        }
 
         case EventType.ClaimUsdcExcess: {
           const overinvestment = await EarlyStageService.accountOverinvestment(
@@ -105,25 +110,12 @@ async function filterAccountNotifications (account: string, notifications: Notif
           break;
         }
 
-        case EventType.AvailableOnPortfolio: {
-          const involved = await EarlyStageService.isAccountInvolved(
-            notification.projectNest,
-            account,
-          );
-          if (involved) {
-            accountNotifications.push(notification);
-          }
+        case EventType.AvailableOnPortfolio:
+          await pushIfInvolved(notification);
           break;
-        }
 
         case EventType.TgeAvailableNow: {
-          const involved = await EarlyStageService.isAccountInvolved(
-            notification.projectNest,
-            account,
-          );
-          if (involved) {
-            accountNotifications.push(notification);
-          }
+          await pushIfInvolved(notification);
           break;
         }
 
@@ -132,11 +124,10 @@ async function filterAccountNotifications (account: string, notifications: Notif
     }
   }
 
-  console.log("Account notifications:", accountNotifications);
   return accountNotifications;
 }
 
-export async function getAccountNotifications (account: string): Promise<void> {
+export async function getAccountNotifications (account: string): Promise<Notification[]> {
   console.log("Fetching notifications for account:", account);
 
   // Just for Testing // #TODO: Remove this
@@ -149,10 +140,9 @@ export async function getAccountNotifications (account: string): Promise<void> {
     account,
     await getAllNotifications(timestamp),
   );
-  console.log("Filtered Notifications:", notifications);
 
   // set timestamp to local storage
   LocalStorage.setNotificationTimestamp(account);
 
-  return;
+  return notifications;
 }

@@ -6,7 +6,7 @@ export default class EarlyStageService {
 
   static async projectExist(projectNest: string): Promise<boolean> {
     const EarlyStageManager = BlockchainService.getContract('EarlyStageManager');
-    return await EarlyStageManager.projectExist(projectNest);
+    return EarlyStageManager.projectExist(projectNest);
   }
 
   // Checks if the account was involved in ProjectNest by using the maxAllocation function.
@@ -14,19 +14,23 @@ export default class EarlyStageService {
   //
   // @returns {boolean} - The function returns true if the maxAllocation is greater than 0
   static async isAccountInvolved (projectNest: string, account: string): Promise<boolean> {
-    if (!EarlyStageService.projectExist(projectNest)) {
+    console.log(`projectNest: ${projectNest}`);
+    console.log(`account: ${account}`);
+
+    if (!(await EarlyStageService.projectExist(projectNest))) {
       console.warn(`Project ${projectNest} does not exist`);
       return false;
     }
 
     const ProjectNest = BlockchainService.getContract('ProjectNest', projectNest);
-    const maxAllocation = await ProjectNest.maxAllocation(account);
+    const maxAllocation = await ProjectNest.maxAllocationValues(account);
+    console.log(`maxAllocation: ${maxAllocation}`);
 
-    return maxAllocation.gt(0);
+    return maxAllocation > 0n;
   }
 
   static async accountAllocation (projectNest: string, account: string): Promise<bigint> {
-    if (!EarlyStageService.projectExist(projectNest)) {
+    if (!(await EarlyStageService.projectExist(projectNest))) {
       console.warn(`Project ${projectNest} does not exist`);
       return 0n;
     }
@@ -38,7 +42,7 @@ export default class EarlyStageService {
   }
 
   static async accountInvestment (projectNest: string, account: string): Promise<bigint> {
-    if (!EarlyStageService.projectExist(projectNest)) {
+    if (!(await EarlyStageService.projectExist(projectNest))) {
       console.warn(`Project ${projectNest} does not exist`);
       return 0n;
     }
@@ -49,9 +53,8 @@ export default class EarlyStageService {
     return investment;
   }
 
-
   static async accountOverinvestment(projectNest: string, account: string): Promise<bigint> {
-    if (!EarlyStageService.projectExist(projectNest)) {
+    if (!(await EarlyStageService.projectExist(projectNest))) {
       console.warn(`Project ${projectNest} does not exist`);
       return 0n;
     }
