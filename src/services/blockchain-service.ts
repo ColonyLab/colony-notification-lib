@@ -17,6 +17,7 @@ const contractArtifacts: ArtifactsMap = {
   ProjectNest,
 };
 
+
 export default class BlockchainService {
   public static getRpcUrl(): string {
     const network = process.env['REACT_APP_NETWORK']!;

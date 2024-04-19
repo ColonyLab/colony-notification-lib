@@ -1,6 +1,4 @@
 export default class LocalStorage {
-  // General
-
   static getItem(key: string) {
     const item = localStorage.getItem(key);
     return item ? JSON.parse(item) : null;
