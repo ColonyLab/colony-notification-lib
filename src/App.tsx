@@ -1,13 +1,13 @@
 import React from 'react';
 import './App.css';
 
-import { Notification } from './components/Notification';
+import { NotificationsTest } from './components/NotificationsTest';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <Notification /> {/* Use the component */}
+        <NotificationsTest /> {/* Use the component */}
       </header>
     </div>
   );

@@ -19,9 +19,6 @@ export default defineConfig(({ mode }) => {
       basePlugin(),
       importPrefixPlugin(),
       htmlPlugin(mode),
-      
-      
-      
     ],
   };
 });

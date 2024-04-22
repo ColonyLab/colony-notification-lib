@@ -1,8 +1,8 @@
 {
   "name": "notification-lib",
   "version": "0.1.0",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "/lib/index.js",
+  "types": "/lib/index.d.ts",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",

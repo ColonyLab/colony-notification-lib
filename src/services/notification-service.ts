@@ -2,11 +2,6 @@ import { GraphQLClient, gql } from 'graphql-request';
 import LocalStorage from './local-storage';
 import EarlyStageService from './early-stage-service';
 
-// TODO configuration
-const SUBGRAPH_ENDPOINT = 'http://localhost:8000/subgraphs/name/colony/notifications';
-
-const graphStakingClient = new GraphQLClient(SUBGRAPH_ENDPOINT);
-
 export enum EventType {
   NewProjectOnDealFlow,
   NestIsOpen,
@@ -30,119 +25,126 @@ interface getNotificationsResult {
   notifications: Notification[]
 }
 
-const QUERY = gql`
-query getNotifications($timestamp: Int!) {
-  notifications(orderBy: timestamp, where: { timestamp_gte: $timestamp }) {
-    id
-    timestamp
-    projectNest
-    eventType
-    eventTypeString
-    additionalData
+// TODO configuration
+const SUBGRAPH_ENDPOINT = 'http://localhost:8000/subgraphs/name/colony/notifications';
+const graphStakingClient = new GraphQLClient(SUBGRAPH_ENDPOINT);
+
+export default class NotificationService {
+
+  static GRAPH_QUERY = gql`
+  query getNotifications($timestamp: Int!) {
+    notifications(orderBy: timestamp, where: { timestamp_gte: $timestamp }) {
+      id
+      timestamp
+      projectNest
+      eventType
+      eventTypeString
+      additionalData
+    }
   }
-}
-`;
+  `;
 
-// Fetch notifications from the subgraph older than given timestamp
-export async function getAllNotifications (timestamp: number): Promise<Notification[]> {
-  console.log("Fetching notifications older than:", timestamp);
-  // TODO log readable form date also
+  // Fetch notifications from the subgraph older than given timestamp
+  public static async getAllNotifications (timestamp: number): Promise<Notification[]> {
+    const date = new Date(timestamp * 1000);
+    console.log("Fetching notifications older than:", date.toString(), ", timestamp:", timestamp);
 
-  const data = await graphStakingClient.request<
-    getNotificationsResult
-  >
-  (QUERY, {
-    timestamp,
-  }) as getNotificationsResult;
+    const data = await graphStakingClient.request<
+      getNotificationsResult
+    >
+    (NotificationService.GRAPH_QUERY, {
+      timestamp,
+    }) as getNotificationsResult;
 
-  return data.notifications;
-}
+    return data.notifications;
+  }
 
-// Filter notifications by eventType for a given account
-// by checking investment details in the EarlyStageService,
-async function filterAccountNotifications (account: string, notifications: Notification[]): Promise<Notification[]> {
-  const accountNotifications = [];
+  // Filter notifications by eventType for a given account
+  // by checking investment details in the EarlyStageService,
+  public static async filterAccountNotifications (account: string, notifications: Notification[]): Promise<Notification[]> {
+    const accountNotifications = [];
 
-  // Helper function to push notification if account is involved
-  const pushIfInvolved = async (notification: Notification) => {
-    const involved = await EarlyStageService.isAccountInvolved(
-      notification.projectNest,
+    // Helper function to push notification if account is involved
+    const pushIfInvolved = async (notification: Notification) => {
+      const involved = await EarlyStageService.isAccountInvolved(
+        notification.projectNest,
+        account,
+      );
+      if (involved) {
+        accountNotifications.push(notification);
+      }
+    };
+
+    for (const notification of notifications) {
+      switch (notification.eventType) {
+          case EventType.NewProjectOnDealFlow:
+            accountNotifications.push(notification);
+            break;
+
+          case EventType.NestIsOpen:
+            accountNotifications.push(notification);
+            break;
+
+          case EventType.MovedToAnalysis: {
+            const allocation = await EarlyStageService.accountAllocation(
+              notification.projectNest,
+              account,
+            );
+            if (allocation > 0) {
+              accountNotifications.push(notification);
+            }
+            break;
+          }
+
+          case EventType.MovedToInvestmentCommittee:
+            await pushIfInvolved(notification);
+            break;
+
+          case EventType.ClaimUsdcExcess: {
+            const overinvestment = await EarlyStageService.accountOverinvestment(
+              notification.projectNest,
+              account,
+            );
+            if (overinvestment > 0) {
+              accountNotifications.push(notification);
+            }
+            break;
+          }
+
+          case EventType.AvailableOnPortfolio:
+            await pushIfInvolved(notification);
+            break;
+
+          case EventType.TgeAvailableNow: {
+            await pushIfInvolved(notification);
+            break;
+          }
+
+          default:
+            console.warn(`Unknown event type: ${notification.eventType}, skipping...`);
+      }
+    }
+
+    return accountNotifications;
+  }
+
+  public static async getAccountNotifications (account: string): Promise<Notification[]> {
+    console.log("Fetching notifications for account:", account);
+
+    // Just for Testing // #TODO: Remove this
+    LocalStorage.clearNotificationTimestamp(account);
+
+    // get timestamp from local storage
+    const timestamp = LocalStorage.getNotificationTimestamp(account);
+
+    const notifications = await NotificationService.filterAccountNotifications(
       account,
+      await NotificationService.getAllNotifications(timestamp),
     );
-    if (involved) {
-      accountNotifications.push(notification);
-    }
-  };
 
-  for (const notification of notifications) {
-    switch (notification.eventType) {
-        case EventType.NewProjectOnDealFlow:
-          accountNotifications.push(notification);
-          break;
+    // set timestamp to local storage
+    LocalStorage.setNotificationTimestamp(account);
 
-        case EventType.NestIsOpen:
-          accountNotifications.push(notification);
-          break;
-
-        case EventType.MovedToAnalysis: {
-          const allocation = await EarlyStageService.accountAllocation(
-            notification.projectNest,
-            account,
-          );
-          if (allocation > 0) {
-            accountNotifications.push(notification);
-          }
-          break;
-        }
-
-        case EventType.MovedToInvestmentCommittee:
-          await pushIfInvolved(notification);
-          break;
-
-        case EventType.ClaimUsdcExcess: {
-          const overinvestment = await EarlyStageService.accountOverinvestment(
-            notification.projectNest,
-            account,
-          );
-          if (overinvestment > 0) {
-            accountNotifications.push(notification);
-          }
-          break;
-        }
-
-        case EventType.AvailableOnPortfolio:
-          await pushIfInvolved(notification);
-          break;
-
-        case EventType.TgeAvailableNow: {
-          await pushIfInvolved(notification);
-          break;
-        }
-
-        default:
-          console.warn(`Unknown event type: ${notification.eventType}, skipping...`);
-    }
+    return notifications;
   }
-
-  return accountNotifications;
-}
-
-export async function getAccountNotifications (account: string): Promise<Notification[]> {
-  console.log("Fetching notifications for account:", account);
-
-  // Just for Testing // #TODO: Remove this
-  LocalStorage.clearNotificationTimestamp(account);
-
-  // get timestamp from local storage
-  const timestamp = LocalStorage.getNotificationTimestamp(account);
-
-  const notifications = await filterAccountNotifications(
-    account,
-    await getAllNotifications(timestamp),
-  );
-
-  // set timestamp to local storage
-  LocalStorage.setNotificationTimestamp(account);
-
-  return notifications;
 }
