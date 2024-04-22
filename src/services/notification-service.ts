@@ -101,6 +101,12 @@ export default class NotificationService {
     };
 
     for (const notification of notifications) {
+      console.log(
+        "Processing notification:", notification.eventTypeString,
+        ", for project:", notification.projectNest,
+        ", and account:", account
+      );
+
       switch (notification.eventType) {
           case EventType.NewProjectOnDealFlow:
             accountNotifications.push(notification);

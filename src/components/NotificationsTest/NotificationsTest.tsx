@@ -7,7 +7,6 @@ import './NotificationsTest.css';
 
 Config.setupConfig(Environment.LOCAL);
 
-
 export function NotificationsTest(): ReactElement {
 
   // const projectNest = "0x24727f6306dac64e1688093c5fec78c5c5668a34";
