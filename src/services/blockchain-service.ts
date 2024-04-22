@@ -2,6 +2,7 @@ import * as EarlyStageManager from "../abis/EarlyStageManager.json";
 import * as ProjectNest from "../abis/ProjectNest.json";
 
 import { JsonRpcProvider, InterfaceAbi, Contract } from "ethers";
+import Config, { Network } from "./config";
 
 type ContractArtifacts = {
   abi: InterfaceAbi;
@@ -19,19 +20,6 @@ const contractArtifacts: ArtifactsMap = {
 
 
 export default class BlockchainService {
-  public static getRpcUrl(): string {
-    const network = process.env['REACT_APP_NETWORK']!;
-    if(network === 'FUJI') {
-      return process.env['REACT_APP_FUJI_TESTNET_RPC_URL']!;
-    }
-    if(network === 'AVALANCHE') {
-      return process.env['REACT_APP_AVALANCHE_RPC_URL']!;
-    }
-    else{
-      throw new Error(`Invalid network ${network}`);
-    }
-  }
-
   public static getContractAddress (contractName: string): string {
     if (contractName === 'EarlyStageManager') {
       return process.env['REACT_APP_EARLY_STAGE_MANAGER_ADDRESS']!;
@@ -54,7 +42,7 @@ export default class BlockchainService {
       address = BlockchainService.getContractAddress(contractName);
     }
 
-    const provider = new JsonRpcProvider(BlockchainService.getRpcUrl());
+    const provider = new JsonRpcProvider(Config.getRpcUrl());
     const artifacts = BlockchainService.getArtifacts(contractName);
 
     return new Contract(

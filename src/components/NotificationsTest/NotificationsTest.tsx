@@ -1,8 +1,12 @@
 import React, { ReactElement, useEffect, useRef, useState } from 'react';
+
 import NotificationService from '../../services/notification-service';
 import EarlyStageService from '../../services/early-stage-service';
-
+import Config, { Environment } from '../../services/config';
 import './NotificationsTest.css';
+
+Config.setupConfig(Environment.LOCAL);
+
 
 export function NotificationsTest(): ReactElement {
 
@@ -17,9 +21,11 @@ export function NotificationsTest(): ReactElement {
   const [account, setAccount] = useState(zeroAddress);
   const [timestamp, setTimestamp] = useState(oldTimestamp);
 
+  const notificationService = new NotificationService();
+
   const allNotifications = async () => {
     log(`Getting all notifications for timestamp ${timestamp}`);
-    const notifications = await NotificationService.getAllNotifications(timestamp);
+    const notifications = await notificationService.getAllNotifications(timestamp);
     console.log("all notifications:", notifications);
     log(JSON.stringify(notifications, null, 2));
   };
@@ -27,7 +33,7 @@ export function NotificationsTest(): ReactElement {
   const accountNotifications = async () => {
     log(`Getting account notifications for account ${account}`);
 
-    const notifications = await NotificationService.getAccountNotifications(account);
+    const notifications = await notificationService.getAccountNotifications(account);
     console.log("account notifications:", notifications);
     log(JSON.stringify(notifications, null, 2));
   };

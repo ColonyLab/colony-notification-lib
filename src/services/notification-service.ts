@@ -1,6 +1,8 @@
 import { GraphQLClient, gql } from 'graphql-request';
+import Config, { Environment } from './config';
 import LocalStorage from './local-storage';
 import EarlyStageService from './early-stage-service';
+import { graphql } from 'graphql';
 
 export enum EventType {
   NewProjectOnDealFlow,
@@ -25,11 +27,8 @@ interface getNotificationsResult {
   notifications: Notification[]
 }
 
-// TODO configuration
-const SUBGRAPH_ENDPOINT = 'http://localhost:8000/subgraphs/name/colony/notifications';
-const graphStakingClient = new GraphQLClient(SUBGRAPH_ENDPOINT);
-
 export default class NotificationService {
+  graphClient: GraphQLClient;
 
   static GRAPH_QUERY = gql`
   query getNotifications($timestamp: Int!) {
@@ -44,12 +43,18 @@ export default class NotificationService {
   }
   `;
 
+  constructor() {
+    this.graphClient = new GraphQLClient(Config.getConfig(
+      'GRAPH_NOTIFICATIONS_URL',
+    ));
+  }
+
   // Fetch notifications from the subgraph older than given timestamp
-  public static async getAllNotifications (timestamp: number): Promise<Notification[]> {
+  public async getAllNotifications (timestamp: number): Promise<Notification[]> {
     const date = new Date(timestamp * 1000);
     console.log("Fetching notifications older than:", date.toString(), ", timestamp:", timestamp);
 
-    const data = await graphStakingClient.request<
+    const data = await this.graphClient.request<
       getNotificationsResult
     >
     (NotificationService.GRAPH_QUERY, {
@@ -57,6 +62,26 @@ export default class NotificationService {
     }) as getNotificationsResult;
 
     return data.notifications;
+  }
+
+  public async getAccountNotifications (account: string): Promise<Notification[]> {
+    console.log("Fetching notifications for account:", account);
+
+    // Just for Testing // #TODO: Remove this
+    LocalStorage.clearNotificationTimestamp(account);
+
+    // get timestamp from local storage
+    const timestamp = LocalStorage.getNotificationTimestamp(account);
+
+    const notifications = await NotificationService.filterAccountNotifications(
+      account,
+      await this.getAllNotifications(timestamp),
+    );
+
+    // set timestamp to local storage
+    LocalStorage.setNotificationTimestamp(account);
+
+    return notifications;
   }
 
   // Filter notifications by eventType for a given account
@@ -126,25 +151,5 @@ export default class NotificationService {
     }
 
     return accountNotifications;
-  }
-
-  public static async getAccountNotifications (account: string): Promise<Notification[]> {
-    console.log("Fetching notifications for account:", account);
-
-    // Just for Testing // #TODO: Remove this
-    LocalStorage.clearNotificationTimestamp(account);
-
-    // get timestamp from local storage
-    const timestamp = LocalStorage.getNotificationTimestamp(account);
-
-    const notifications = await NotificationService.filterAccountNotifications(
-      account,
-      await NotificationService.getAllNotifications(timestamp),
-    );
-
-    // set timestamp to local storage
-    LocalStorage.setNotificationTimestamp(account);
-
-    return notifications;
   }
 }
