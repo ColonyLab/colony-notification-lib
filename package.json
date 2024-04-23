@@ -19,7 +19,8 @@
   "scripts": {
     "start": "vite",
     "build": "tsc",
-    "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx"
+    "lint": "npx eslint . --ext .js,.jsx,.ts,.tsx",
+    "postinstall": "npm run build"
   },
   "files": [
     "lib/**/*"
