@@ -67,8 +67,8 @@ export default class NotificationService {
   public async getAccountNotifications (account: string): Promise<Notification[]> {
     console.log("Fetching notifications for account:", account);
 
-    // Just for Testing // #TODO: Remove this
-    LocalStorage.clearNotificationTimestamp(account);
+    // clear localStorage for testing
+    // LocalStorage.clearNotificationTimestamp(account);
 
     // get timestamp from local storage
     const timestamp = LocalStorage.getNotificationTimestamp(account);

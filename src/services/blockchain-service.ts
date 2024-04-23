@@ -22,7 +22,7 @@ const contractArtifacts: ArtifactsMap = {
 export default class BlockchainService {
   public static getContractAddress (contractName: string): string {
     if (contractName === 'EarlyStageManager') {
-      return process.env['REACT_APP_EARLY_STAGE_MANAGER_ADDRESS']!;
+      return Config.getEarlyStageManagerAddress();
     } else {
       throw new Error(`Invalid contract name ${name}`);
     }

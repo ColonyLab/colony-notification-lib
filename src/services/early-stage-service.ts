@@ -3,10 +3,12 @@ import BlockchainService from "./blockchain-service";
 // this simple cache is used to reduce the number of calls to the blockchain
 const memCache = {
   projectExist: new Map<string, boolean>(),
-  accountInvolved: new Map<[string, string], boolean>(),
-  accountAllocation: new Map<[string, string], bigint>(),
-  accountInvestment: new Map<[string, string], bigint>(),
-  accountOverinvestment: new Map<[string, string], bigint>(),
+
+  // for account mapping, use projectNest + account as the key
+  accountInvolved: new Map<string, boolean>(),
+  accountAllocation: new Map<string, bigint>(),
+  accountInvestment: new Map<string, bigint>(),
+  accountOverinvestment: new Map<string, bigint>(),
 };
 
 export default class EarlyStageService {
@@ -27,8 +29,8 @@ export default class EarlyStageService {
   //
   // @returns {boolean} - The function returns true if the maxAllocation is greater than 0
   static async isAccountInvolved (projectNest: string, account: string): Promise<boolean> {
-    if (memCache.accountInvolved.has([projectNest, account])) {
-      return memCache.accountInvolved.get([projectNest, account])!;
+    if (memCache.accountInvolved.has(projectNest + account)) {
+      return memCache.accountInvolved.get(projectNest + account)!;
     }
 
     if (!(await EarlyStageService.projectExist(projectNest))) {
@@ -38,16 +40,15 @@ export default class EarlyStageService {
 
     const ProjectNest = BlockchainService.getContract('ProjectNest', projectNest);
     const maxAllocation = await ProjectNest.maxAllocationValues(account);
-
     const involved = maxAllocation > 0n;
 
-    memCache.accountInvolved.set([projectNest, account], involved);
+    memCache.accountInvolved.set(projectNest + account, involved);
     return involved;
   }
 
   static async accountAllocation (projectNest: string, account: string): Promise<bigint> {
-    if (memCache.accountAllocation.has([projectNest, account])) {
-      return memCache.accountAllocation.get([projectNest, account])!;
+    if (memCache.accountAllocation.has(projectNest + account)) {
+      return memCache.accountAllocation.get(projectNest + account)!;
     }
 
     if (!(await EarlyStageService.projectExist(projectNest))) {
@@ -58,13 +59,13 @@ export default class EarlyStageService {
     const ProjectNest = BlockchainService.getContract('ProjectNest', projectNest);
     const allocation = await ProjectNest.allocationBalances(account);
 
-    memCache.accountAllocation.set([projectNest, account], allocation);
+    memCache.accountAllocation.set(projectNest + account, allocation);
     return allocation;
   }
 
   static async accountInvestment (projectNest: string, account: string): Promise<bigint> {
-    if (memCache.accountInvestment.has([projectNest, account])) {
-      return memCache.accountInvestment.get([projectNest, account])!;
+    if (memCache.accountInvestment.has(projectNest + account)) {
+      return memCache.accountInvestment.get(projectNest + account)!;
     }
 
     if (!(await EarlyStageService.projectExist(projectNest))) {
@@ -75,13 +76,13 @@ export default class EarlyStageService {
     const ProjectNest = BlockchainService.getContract('ProjectNest', projectNest);
     const investment = await ProjectNest.investmentBalances(account);
 
-    memCache.accountInvestment.set([projectNest, account], investment);
+    memCache.accountInvestment.set(projectNest + account, investment);
     return investment;
   }
 
   static async accountOverinvestment(projectNest: string, account: string): Promise<bigint> {
-    if (memCache.accountOverinvestment.has([projectNest, account])) {
-      return memCache.accountOverinvestment.get([projectNest, account])!;
+    if (memCache.accountOverinvestment.has(projectNest + account)) {
+      return memCache.accountOverinvestment.get(projectNest + account)!;
     }
 
     if (!(await EarlyStageService.projectExist(projectNest))) {
@@ -92,7 +93,7 @@ export default class EarlyStageService {
     const ProjectNest = BlockchainService.getContract('ProjectNest', projectNest);
     const overinvestment = await ProjectNest.checkOverinvestment(account);
 
-    memCache.accountOverinvestment.set([projectNest, account], overinvestment);
+    memCache.accountOverinvestment.set(projectNest + account, overinvestment);
     return overinvestment;
   }
 }

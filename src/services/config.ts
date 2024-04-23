@@ -84,6 +84,14 @@ export default class Config {
     return Config.getConfig('JSON_RPC_URL')
   }
 
+  public static getGraphNotificationsUrl(): string {
+    return Config.getConfig('GRAPH_NOTIFICATIONS_URL')
+  }
+
+  public static getEarlyStageManagerAddress(): string {
+    return Config.getConfig('EARLYSTAGE_MANAGER_CONTRACT')
+  }
+
   public static getSecret (name: string): any {
     return process.env[name]
   }
