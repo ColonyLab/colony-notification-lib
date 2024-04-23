@@ -24,6 +24,29 @@ const notificationService = new NotificationService();
 const notifications = await notificationService.getAccountNotifications(account);
 ```
 
+### Early Stage Service
+
+Early Stage service provide convinient static methods to interact with Early Stage Manager and its Project Nests:
+```javascript
+import { EarlyStageService } from 'notification-lib';
+
+// checks if project exists in Early Stage Manager
+const exist = await EarlyStageService.projectExist(projectNest);
+
+// checks if account is involved in project
+const involved = await EarlyStageService.isAccountInvolved(projectNest, account);
+
+// get account allocation in project
+const allocation = await EarlyStageService.accountAllocation(projectNest, account);
+
+// get account investment in project
+const investment = await EarlyStageService.accountInvestment(projectNest, account);
+
+// get account overinvestment in project
+const overinvestment = await EarlyStageService.accountOverinvestment(projectNest, account);
+```
+
+
 ## Available Scripts
 
 In the project directory, you can run:

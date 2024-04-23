@@ -45,12 +45,28 @@ export function NotificationsTest(): ReactElement {
     log(JSON.stringify(notifications, null, 2));
   };
 
+  const projectExist = async () => {
+    log(`EarlyStageService: project: ${projectNest} exist?`);
+
+    const exist = await EarlyStageService.projectExist(projectNest);
+    console.log("projectExist:", exist);
+    log(exist.toString());
+  };
+
   const isAccountInvolved = async () => {
-    log(`Checking if account ${account} is involved in project nest ${projectNest}`);
+    log(`EarlyStageService: Account ${account} involved in nest ${projectNest}?`);
 
     const involved = await EarlyStageService.isAccountInvolved(projectNest, account);
     console.log("isAccountInvolved:", involved);
     log(involved.toString());
+  };
+
+  const accountAllocation = async () => {
+    log(`EarlyStageService: Account ${account} allocation in nest ${projectNest}?`);
+
+    const allocation = await EarlyStageService.accountAllocation(projectNest, account);
+    console.log("allocation:", allocation);
+    log(allocation.toString());
   };
 
   // -- Console log messages --
@@ -127,9 +143,26 @@ export function NotificationsTest(): ReactElement {
         <div className="button-group">
           <button
             className="button"
+            onClick={projectExist}
+          >
+            ProjectExist
+          </button>
+        </div>
+
+        <div className="button-group">
+          <button
+            className="button"
             onClick={isAccountInvolved}
           >
-            isAccountInvolvedInNest
+            isAccountInvolved
+          </button>
+        </div>
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={accountAllocation}
+          >
+            accountAllocation
           </button>
         </div>
       </div>
