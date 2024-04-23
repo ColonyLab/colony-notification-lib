@@ -2,35 +2,16 @@
 
 ### Configuration
 
-Environment Configuration:
-```javascript
-import Config, { Environment } from 'notification-lib/services/config';
-
-Config.setupConfig(Environment.DEV);
-```
-
 Providing custom configuration:
 ```javascript
-import Config, { Environment, Network, ConfigValues } from 'notification-lib/services/config';
+import Config, { Network, ConfigValues } from 'notification-lib/services/config';
 
-const config: ConfigValues = {
+Config.setupConfig({
   NETWORK: Network.FUJI,
   JSON_RPC_URL: 'https://api.avax-test.network/ext/bc/C/rpc',
   GRAPH_NOTIFICATIONS_URL: 'https://api.thegraph.com/subgraphs/name/notifications',
   EARLYSTAGE_MANAGER_CONTRACT: '0x7f4f8e8f3b3d6b5f4f3f3f3f3f3f3f3f3f3f3f3f',
-};
-
-setupConfig(Environment.LOCAL, config);
-
-
-// or simply:
-Config.setupConfig(Environment.LOCAL, {
-    NETWORK: Network.FUJI,
-    JSON_RPC_URL: 'https://api.avax-test.network/ext/bc/C/rpc',
-    GRAPH_NOTIFICATIONS_URL: 'https://api.thegraph.com/subgraphs/name/notifications',
-    EARLYSTAGE_MANAGER_CONTRACT: '0x7f4f8e8f3b3d6b5f4f3f3f3f3f3f3f3f3f3f3f3f',
-  }
-);
+} as ConfigValues);
 ```
 
 ### Notification Service

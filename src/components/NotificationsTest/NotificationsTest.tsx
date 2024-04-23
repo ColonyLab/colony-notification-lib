@@ -2,10 +2,18 @@ import React, { ReactElement, useEffect, useRef, useState } from 'react';
 
 import NotificationService from '../../services/notification-service';
 import EarlyStageService from '../../services/early-stage-service';
-import Config, { Environment } from '../../services/config';
+import Config, { Network } from '../../services/config';
 import './NotificationsTest.css';
 
-Config.setupConfig(Environment.LOCAL);
+// local env
+Config.setupConfig({
+  NETWORK: Network.FUJI,
+
+  JSON_RPC_URL: "https://api.avax-test.network/ext/bc/C/rpc",
+  GRAPH_NOTIFICATIONS_URL: 'http://localhost:8000/subgraphs/name/colony/notifications',
+
+  EARLYSTAGE_MANAGER_CONTRACT: "0x425C95aB13d2caae4C38c86575fc3EF5Ad7cED4f",
+});
 
 export function NotificationsTest(): ReactElement {
 

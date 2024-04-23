@@ -1,5 +1,5 @@
 import { GraphQLClient, gql } from 'graphql-request';
-import Config, { Environment } from './config';
+import Config from './config';
 import LocalStorage from './local-storage';
 import EarlyStageService from './early-stage-service';
 import { graphql } from 'graphql';
