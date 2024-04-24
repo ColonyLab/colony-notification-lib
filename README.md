@@ -4,7 +4,7 @@
 
 Providing custom configuration:
 ```javascript
-import Config, { Network, ConfigValues } from 'notification-lib/services/config';
+import { Config, Network, ConfigValues } from '@colony/colony-notification-lib/lib';
 
 Config.setupConfig({
   NETWORK: Network.FUJI,
@@ -18,7 +18,7 @@ Config.setupConfig({
 
 Get account notifications:
 ```javascript
-import { NotificationService } from 'notification-lib';
+import { NotificationService } from '@colony/colony-notification-lib/lib';
 
 const notificationService = new NotificationService();
 const notifications = await notificationService.getAccountNotifications(account);
@@ -28,7 +28,7 @@ const notifications = await notificationService.getAccountNotifications(account)
 
 Early Stage service provide convinient static methods to interact with Early Stage Manager and its Project Nests:
 ```javascript
-import { EarlyStageService } from 'notification-lib';
+import { EarlyStageService } from '@colony/colony-notification-lib/lib';
 
 // checks if project exists in Early Stage Manager
 const exist = await EarlyStageService.projectExist(projectNest);

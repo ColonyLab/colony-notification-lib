@@ -14,7 +14,7 @@ export enum EventType {
   TgeAvailableNow,
 }
 
-interface Notification {
+export interface Notification {
   id: string
   timestamp: number
   projectNest: string
