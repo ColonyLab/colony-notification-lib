@@ -11,8 +11,10 @@
     "@types/node": "^16.18.96",
     "@types/react": "^18.2.75",
     "@types/react-dom": "^18.2.24",
+    "graphql": "^16.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "subscriptions-transport-ws": "^0.11.0",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
@@ -42,7 +44,7 @@
     ]
   },
   "peerDependencies": {
-    "ethers": "^6.11.1",
+    "ethers": "^5.7.0",
     "graphql-request": "^6.1.0"
   },
   "devDependencies": {

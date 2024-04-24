@@ -1,11 +1,11 @@
 import * as EarlyStageManager from "../abis/EarlyStageManager.json";
 import * as ProjectNest from "../abis/ProjectNest.json";
 
-import { JsonRpcProvider, InterfaceAbi, Contract } from "ethers";
+import { ethers, Contract } from "ethers";
 import Config, { Network } from "./config";
 
 type ContractArtifacts = {
-  abi: InterfaceAbi;
+  abi: any;
   // bytecode: string;
 }
 
@@ -42,7 +42,7 @@ export default class BlockchainService {
       address = BlockchainService.getContractAddress(contractName);
     }
 
-    const provider = new JsonRpcProvider(Config.getRpcUrl());
+    const provider = new ethers.providers.JsonRpcProvider(Config.getRpcUrl());
     const artifacts = BlockchainService.getArtifacts(contractName);
 
     return new Contract(
