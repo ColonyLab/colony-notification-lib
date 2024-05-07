@@ -3,31 +3,19 @@ import Config from './config';
 import LocalStorage from './local-storage';
 import EarlyStageService from './early-stage-service';
 import { graphql } from 'graphql';
-
-export enum EventType {
-  NewProjectOnDealFlow, // 0
-  NestIsOpen, // 1
-  MovedToAnalysis, // 2
-  MovedToInvestmentCommittee, // 3
-  ClaimUsdcExcess, // 4
-  AvailableOnPortfolio, // 5
-  TgeAvailableNow, // 6
-  CountdownSet, // 7
-  CountdownHidden, // 8
-  CustomNotification, // 9
-}
+import { EventType, mapEventType } from './types/eventType';
 
 export interface Notification {
   id: string
   timestamp: number
   projectNest: string
   eventType: number
-  eventTypeString: string
   additionalData: string
-  metadata?: { // could be null
+  content?: { // could be null
     id: string // dataURI
     content: string
   }
+  eventMessage?: string // event message
 }
 
 interface getNotificationsResult {
@@ -44,9 +32,8 @@ export default class NotificationService {
       timestamp
       projectNest
       eventType
-      eventTypeString
       additionalData
-      metadata {
+      content {
         id
         content
       }
@@ -96,48 +83,47 @@ export default class NotificationService {
   }
 
   // Filter notifications by eventType for a given account
-  // by checking investment details in the EarlyStageService,
   public static async filterAccountNotifications (account: string, notifications: Notification[]): Promise<Notification[]> {
     const accountNotifications = [];
 
-    // Helper function to push notification if account is involved
-    const pushIfInvolved = async (notification: Notification) => {
-      const involved = await EarlyStageService.isAccountInvolved(
+    // Helper function to check if account is involved
+    const involved = async (notification: Notification): Promise<boolean> => {
+      return EarlyStageService.isAccountInvolved(
         notification.projectNest,
         account,
       );
-      if (involved) {
-        accountNotifications.push(notification);
-      }
     };
 
-    // Helper function to push notification if countdown is set
-    const pushCountdownSet = async (notification: Notification) => {
-      const involved = await EarlyStageService.isAccountInvolved(
+    // Helper function to check if account has allocation
+    const hasAllocation = async (notification: Notification): Promise<boolean> => {
+      const allocation = await EarlyStageService.accountAllocation(
         notification.projectNest,
         account,
       );
-      if (involved) {
-        // update eventString based on metadata
-        const msg = `${notification.metadata ? notification.metadata.content : ""} countdown ` +
-              `for projectNest ${notification.projectNest} ` +
-              `is set to ${new Date(notification.timestamp * 1000).toString()}`
+      return allocation > 0
+    };
 
-        notification.eventTypeString = msg;
-        accountNotifications.push(notification);
-      }
+    // Helper function to check if account has overinvestment
+    const hasOverinvestment = async (notification: Notification): Promise<boolean> => {
+      const overinvestment = await EarlyStageService.accountOverinvestment(
+        notification.projectNest,
+        account,
+      );
+      return overinvestment > 0
     };
 
     // Helper function to push custom notification
     const pushCustomNotification = async (notification: Notification) => {
-      console.log("Processing custom notification:", notification.metadata?.content);
+      console.log("Processing custom notification:", notification.content?.content);
 
-      // update eventString based on metadata if available
-      if (!notification.metadata) {
+      // update eventString based on IFPS content, if available
+      if (!notification.content) {
         return // skip notification with null content
       }
 
-      notification.eventTypeString = notification.metadata.content;
+      notification.eventMessage = mapEventType(notification.eventType, {
+        customMessage: notification.content.content,
+      });
 
       // if projectNest is zero address, it is a global notification
       const zeroAddress = "0x0000000000000000000000000000000000000000";
@@ -151,76 +137,93 @@ export default class NotificationService {
         return // skip if project does not exist
       }
 
-      const involved = await EarlyStageService.isAccountInvolved(
-        notification.projectNest,
-        account,
-      );
-
-      if (involved) {
+      if (await involved(notification)) {
         accountNotifications.push(notification);
       }
     };
 
     for (const notification of notifications) {
       console.log(
-        "Processing notification:", notification.eventTypeString,
+        "Processing notification:", notification.eventType,
         ", for project:", notification.projectNest,
         ", and account:", account
       );
 
       switch (notification.eventType) {
           case EventType.NewProjectOnDealFlow:
+            notification.eventMessage = mapEventType(notification.eventType);
             accountNotifications.push(notification);
             break;
 
           case EventType.NestIsOpen:
+            notification.eventMessage = mapEventType(notification.eventType);
             accountNotifications.push(notification);
             break;
 
+          // additional check if account has any allocation in the project
           case EventType.MovedToAnalysis: {
-            const allocation = await EarlyStageService.accountAllocation(
-              notification.projectNest,
-              account,
-            );
-            if (allocation > 0) {
+            if (await hasAllocation(notification)) {
+              notification.eventMessage = mapEventType(notification.eventType);
               accountNotifications.push(notification);
             }
             break;
           }
 
+          // additional check if account was involved in the project
           case EventType.MovedToInvestmentCommittee:
-            await pushIfInvolved(notification);
+            if (await involved(notification)) {
+              notification.eventMessage = mapEventType(notification.eventType);
+              accountNotifications.push(notification);
+            }
             break;
 
+          // additional check if account has overinvestment to claim in the project
           case EventType.ClaimUsdcExcess: {
-            const overinvestment = await EarlyStageService.accountOverinvestment(
-              notification.projectNest,
-              account,
-            );
-            if (overinvestment > 0) {
+            if (await hasOverinvestment(notification)) {
+              notification.eventMessage = mapEventType(notification.eventType);
               accountNotifications.push(notification);
             }
             break;
           }
 
+          // additional check if account was involved in the project
+          // add token symbol to the event message from additionalData
           case EventType.AvailableOnPortfolio:
-            await pushIfInvolved(notification);
+            if (await involved(notification)) {
+              notification.eventMessage = mapEventType(notification.eventType, {
+                ceTokenSymbol: JSON.parse(notification.additionalData).ceToken.symbol,
+              });
+              accountNotifications.push(notification);
+            }
             break;
 
+          // additional check if account was involved in the project
           case EventType.TgeAvailableNow:
-            await pushIfInvolved(notification);
+            if (await involved(notification)) {
+              notification.eventMessage = mapEventType(notification.eventType);
+              accountNotifications.push(notification);
+            }
             break;
 
+          // additional check if account was involved in the project
+          // add action timestamp to the event message
           case EventType.CountdownSet:
-            await pushCountdownSet(notification);
+            if (await involved(notification)) {
+              notification.eventMessage = mapEventType(notification.eventType, {
+                actionTimestamp: notification.timestamp,
+              });
+              accountNotifications.push(notification);
+            }
             break;
 
           case EventType.CountdownHidden:
             break; // skip
 
-          case EventType.CustomNotification:
+          // custom notification require more logic
+          case EventType.CustomNotification: {
             await pushCustomNotification(notification);
             break;
+          }
 
           default:
             console.warn(`Unknown event type: ${notification.eventType}, skipping...`);

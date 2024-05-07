@@ -1,5 +1,6 @@
 import * as EarlyStageManager from "../abis/EarlyStageManager.json";
 import * as ProjectNest from "../abis/ProjectNest.json";
+import * as IERC20Metadata from "../abis/IERC20Metadata.json";
 
 import { ethers, Contract } from "ethers";
 import Config, { Network } from "./config";
@@ -16,6 +17,7 @@ type ArtifactsMap = {
 const contractArtifacts: ArtifactsMap = {
   EarlyStageManager,
   ProjectNest,
+  IERC20Metadata,
 };
 
 
@@ -51,4 +53,17 @@ export default class BlockchainService {
       provider,
     );
   };
+
+  public static getTokenSymbol = async (ceTokenAddress: string): Promise<string> => {
+    const provider = new ethers.providers.JsonRpcProvider(Config.getRpcUrl());
+    const artifacts = BlockchainService.getArtifacts('IERC20Metadata');
+
+    const Token = new ethers.Contract(
+      ceTokenAddress,
+      artifacts.abi,
+      provider,
+    );
+
+    return await Token.symbol();
+  }
 }
