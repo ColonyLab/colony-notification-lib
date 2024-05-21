@@ -16,6 +16,7 @@ export interface Notification {
     content: string
   }
   eventMessage?: string // event message
+  // new: boolean // true for new notification, false for past notification
 }
 
 interface getNotificationsResult {
@@ -76,14 +77,62 @@ export default class NotificationService {
       await this.getAllNotifications(timestamp),
     );
 
-    // set timestamp to local storage
-    LocalStorage.setNotificationTimestamp(account);
-
     return notifications;
   }
 
+  // /// Get past notifications for a given account, limited by the number of "youngest" notifications
+  // public async getAccountPastNotifications (
+  //   account: string,
+  //   limit: number
+  // ): Promise<Notification[]> {
+  //   const notifications = [] as Notification[];
+  //   const week = 7 * 24 * 60 * 60; // 1 week in seconds
+  // 
+  //   // get timestamp from local storage
+  //   const timestamp = LocalStorage.getNotificationTimestamp(account);
+  // 
+  //   let i = 0;
+  //   let pastTimestamp = timestamp - week;
+  //   while (notifications.length < limit) {
+  //     const pastNotifications = await NotificationService.filterAccountNotifications(
+  //       account,
+  //       await this.getAllNotifications(pastTimestamp),
+  //     );
+  // 
+  // 
+  //     if (pastNotifications.length < limit) {
+  //       // if timestamp less tham 1 April 2024, break
+  //       if (pastTimestamp < Date.UTC(2024,4,1) / 1000) {
+  // 
+  //         // add past notifications to the list, only to the limit
+  //         notifications.push(...pastNotifications.slice(0, limit));
+  //         break;
+  //       }
+  // 
+  //       pastTimestamp -= week * 4**i; // week, 4 weeks, 16 weeks, ...
+  // 
+  //       i++;
+  //       continue;
+  //     }
+  // 
+  //     // add past notifications to the list, only to the limit
+  //     notifications.push(...pastNotifications.slice(0, limit));
+  //   }
+  // 
+  //   return notifications;
+  // }
+
+  /// Set notification timestamp to current time which is used to fetch new notifications
+  public setNotificationTimestamp (account: string) {
+    // set timestamp to local storage
+    LocalStorage.setNotificationTimestamp(account);
+  }
+
   // Filter notifications by eventType for a given account
-  public static async filterAccountNotifications (account: string, notifications: Notification[]): Promise<Notification[]> {
+  public static async filterAccountNotifications (
+    account: string,
+    notifications: Notification[]
+  ): Promise<Notification[]> {
     const accountNotifications = [];
 
     // Helper function to check if account is involved

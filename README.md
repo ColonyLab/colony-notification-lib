@@ -22,6 +22,7 @@ import { NotificationService } from '@colony/colony-notification-lib/lib';
 
 const notificationService = new NotificationService();
 const notifications = await notificationService.getAccountNotifications(account);
+notifications.setNotificationTimestamp(account);
 ```
 
 ### Early Stage Service
