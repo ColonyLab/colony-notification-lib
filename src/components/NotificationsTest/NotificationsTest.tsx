@@ -10,10 +10,12 @@ Config.setupConfig({
   NETWORK: Network.FUJI,
 
   JSON_RPC_URL: "https://api.avax-test.network/ext/bc/C/rpc",
-  GRAPH_NOTIFICATIONS_URL: 'http://localhost:8000/subgraphs/name/colony/notifications',
+  GRAPH_NOTIFICATIONS_URL: 'https://graph.colonylab.io/subgraphs/name/colony/notifications-fuji-develop',
 
   EARLYSTAGE_MANAGER_CONTRACT: "0x425C95aB13d2caae4C38c86575fc3EF5Ad7cED4f",
 });
+
+const notificationService = new NotificationService();
 
 export function NotificationsTest(): ReactElement {
 
@@ -27,12 +29,12 @@ export function NotificationsTest(): ReactElement {
   const [projectNest, setProjectNest] = useState(zeroAddress);
   const [account, setAccount] = useState(zeroAddress);
   const [timestamp, setTimestamp] = useState(oldTimestamp);
+  const [limit, setLimit] = useState(2);
 
-  const notificationService = new NotificationService();
 
   const allNotifications = async () => {
     log(`Getting all notifications for timestamp ${timestamp}`);
-    const notifications = await notificationService.getAllNotifications(timestamp);
+    const notifications = await notificationService.getRawNotificationsSince(timestamp);
     console.log("all notifications:", notifications);
     log(JSON.stringify(notifications, null, 2));
   };
@@ -40,10 +42,33 @@ export function NotificationsTest(): ReactElement {
   const accountNotifications = async () => {
     log(`Getting account notifications for account ${account}`);
 
-    const notifications = await notificationService.getAccountNotifications(account);
+    const notifications = await notificationService.getAccountNewNotifications(account);
     console.log("account notifications:", notifications);
     log(JSON.stringify(notifications, null, 2));
   };
+
+  const accountLastNotifications = async () => {
+    log(`Getting account last ${limit} notifications for account ${account}`);
+
+    const notifications = await notificationService.getAccountLastNotifications(account, limit);
+    console.log("account last ${limit} notifications:", notifications);
+    log(JSON.stringify(notifications, null, 2));
+  };
+
+  const accountResetLastNotifications = async () => {
+    log(`Resetting account ${account} last notifications`);
+
+    await notificationService.resetAccountLastNotifications(account);
+    log("Account last notifications reset");
+  };
+
+  const setNotificationTimestamp = async () => {
+    const now = Math.floor(Date.now() / 1000);
+    log(`Setting notification timestamp to ${now} for account ${account}`);
+
+    await notificationService.setNotificationTimestamp(account);
+    log(`Notification timestamp set to: ${now} for account ${account}`);
+  }
 
   const projectExist = async () => {
     log(`EarlyStageService: project: ${projectNest} exist?`);
@@ -85,6 +110,7 @@ export function NotificationsTest(): ReactElement {
   return (
     <div className="form-container">
       <div className="form-content">
+
         <div className="form-group">
           <label className="label">
             Project Nest
@@ -92,18 +118,6 @@ export function NotificationsTest(): ReactElement {
               value={projectNest}
               onChange={e => setProjectNest(e.target.value)}
               name="projectNest"
-              className="input"
-            />
-          </label>
-        </div>
-
-        <div className="form-group">
-          <label className="label">
-            Account
-            <input
-              value={account}
-              onChange={e => setAccount(e.target.value)}
-              name="account"
               className="input"
             />
           </label>
@@ -120,6 +134,41 @@ export function NotificationsTest(): ReactElement {
               className="input"
             />
           </label>
+        </div>
+
+
+        <div className="form-group">
+          <label className="label">
+            Account
+            <input
+              value={account}
+              onChange={e => setAccount(e.target.value)}
+              name="account"
+              className="input"
+            />
+          </label>
+        </div>
+
+        <div className="form-group">
+          <label className="label">
+            Number of Notifications (limit)
+            <input
+              value={limit}
+              type="number"
+              onChange={e => setLimit(Number(e.target.value))}
+              name="timestamp"
+              className="input"
+            />
+          </label>
+        </div>
+
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={projectExist}
+          >
+            ProjectExist
+          </button>
         </div>
 
         <div className="button-group">
@@ -143,15 +192,6 @@ export function NotificationsTest(): ReactElement {
         <div className="button-group">
           <button
             className="button"
-            onClick={projectExist}
-          >
-            ProjectExist
-          </button>
-        </div>
-
-        <div className="button-group">
-          <button
-            className="button"
             onClick={isAccountInvolved}
           >
             isAccountInvolved
@@ -163,6 +203,33 @@ export function NotificationsTest(): ReactElement {
             onClick={accountAllocation}
           >
             accountAllocation
+          </button>
+        </div>
+
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={() => accountLastNotifications()}
+          >
+            AccountLastNotifications
+          </button>
+        </div>
+
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={accountResetLastNotifications}
+          >
+            ResetAccountLastNotifications
+          </button>
+        </div>
+
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={setNotificationTimestamp}
+          >
+            SetNotificationTimestamp
           </button>
         </div>
       </div>

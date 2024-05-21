@@ -35,11 +35,11 @@
   white-space: pre-wrap;
   text-align: left;
 
-  height: 80vh;
+  height: 85vh;
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin: 5px;
   border: 1px solid #555;
   padding: 10px;
   border-radius: 5px;
@@ -65,16 +65,16 @@
 
 .button-group {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 5px;
 }
 
 .button {
-  padding: 10px 15px;
+  padding: 10px;
   font-size: 14px;
-  margin: 10px 0;
+  margin: 2px;
   cursor: pointer;
   border-radius: 3px;
   border: 1px solid #ccc;
   background: white;
-  width: 50%;
+  width: 70%;
 }

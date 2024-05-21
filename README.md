@@ -16,12 +16,38 @@ Config.setupConfig({
 
 ### Notification Service
 
-Get account notifications:
+Create Notification service:
 ```javascript
 import { NotificationService } from '@colony/colony-notification-lib/lib';
 
 const notificationService = new NotificationService();
-const notifications = await notificationService.getAccountNotifications(account);
+```
+
+Get Raw Notifications:
+```javascript
+const notifications = await notificationService.getRawNotifications(fromTimestamp, toTimestamp);
+const notifications2 = await notificationService.getRawNotificationsSince(fromTimestamp);
+```
+
+Get New Notifications:
+```javascript
+const newNotifications = await notificationService.getAccountNewNotifications(account);
+```
+
+Get Last Notifications wth a limit, and allows to load more:
+```javascript
+// load newest 5 notifications
+const lastNotifications = await notificationService.getAccountLastNotifications(account, 5);
+
+// load next 10 notifications
+const nextNotifications = await notificationService.getAccountLastNotifications(account, 10);
+
+// reset last notifications
+notificationService.resetAccountLastNotifications(account);
+```
+
+Set notification timestamp, to mark the time when user has seen the notification:
+```javascript
 notifications.setNotificationTimestamp(account);
 ```
 

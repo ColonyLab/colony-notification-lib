@@ -9,6 +9,7 @@ export interface Notification {
   id: string
   timestamp: number
   projectNest: string
+  projectName?: string
   eventType: number
   additionalData: string
   content?: { // could be null
@@ -16,7 +17,7 @@ export interface Notification {
     content: string
   }
   eventMessage?: string // event message
-  // new: boolean // true for new notification, false for past notification
+  new?: boolean // true for new notification, false for past notification
 }
 
 interface getNotificationsResult {
@@ -26,9 +27,17 @@ interface getNotificationsResult {
 export default class NotificationService {
   graphClient: GraphQLClient;
 
+  // map account to the oldest last get notification timestamp
+  oldestLastNotificationTimestamp: Map<string, number> = new Map();
+
+  // order decresing
+
   static GRAPH_QUERY = gql`
-  query getNotifications($timestamp: Int!) {
-    notifications(orderBy: timestamp, where: { timestamp_gte: $timestamp }) {
+  query getNotifications($from: Int!, $to: Int!) {
+    notifications(orderBy: timestamp, orderDirection: desc, where: {
+      timestamp_gte: $from,
+      timestamp_lt: $to
+    }) {
       id
       timestamp
       projectNest
@@ -48,24 +57,31 @@ export default class NotificationService {
     ));
   }
 
-  // Fetch notifications from the subgraph older than given timestamp
-  public async getAllNotifications (timestamp: number): Promise<Notification[]> {
-    const date = new Date(timestamp * 1000);
-    console.log("Fetching notifications older than:", date.toString(), ", timestamp:", timestamp);
+  // Fetch notifications from the subgraph
+  public async getRawNotifications(from: number, to: number): Promise<Notification[]> {
+    const fromDate = new Date(from * 1000);
+    const toDate = new Date(to * 1000);
+
+    // console.log("Fetching notifications from:", fromDate.toString(), ", to:", toDate.toString());
 
     const data = await this.graphClient.request<
       getNotificationsResult
     >
     (NotificationService.GRAPH_QUERY, {
-      timestamp,
+      from,
+      to
     }) as getNotificationsResult;
 
     return data.notifications;
   }
 
-  public async getAccountNotifications (account: string): Promise<Notification[]> {
-    console.log("Fetching notifications for account:", account);
+  // Fetch notifications from the subgraph since the given timestamp
+  public async getRawNotificationsSince (timestamp: number): Promise<Notification[]> {
+    const now = Math.floor(Date.now() / 1000);
+    return this.getRawNotifications(timestamp, now);
+  }
 
+  public async getAccountNewNotifications (account: string): Promise<Notification[]> {
     // clear localStorage for testing
     // LocalStorage.clearNotificationTimestamp(account);
 
@@ -74,53 +90,64 @@ export default class NotificationService {
 
     const notifications = await NotificationService.filterAccountNotifications(
       account,
-      await this.getAllNotifications(timestamp),
+      await this.getRawNotificationsSince(timestamp),
     );
 
     return notifications;
   }
 
-  // /// Get past notifications for a given account, limited by the number of "youngest" notifications
-  // public async getAccountPastNotifications (
-  //   account: string,
-  //   limit: number
-  // ): Promise<Notification[]> {
-  //   const notifications = [] as Notification[];
-  //   const week = 7 * 24 * 60 * 60; // 1 week in seconds
-  // 
-  //   // get timestamp from local storage
-  //   const timestamp = LocalStorage.getNotificationTimestamp(account);
-  // 
-  //   let i = 0;
-  //   let pastTimestamp = timestamp - week;
-  //   while (notifications.length < limit) {
-  //     const pastNotifications = await NotificationService.filterAccountNotifications(
-  //       account,
-  //       await this.getAllNotifications(pastTimestamp),
-  //     );
-  // 
-  // 
-  //     if (pastNotifications.length < limit) {
-  //       // if timestamp less tham 1 April 2024, break
-  //       if (pastTimestamp < Date.UTC(2024,4,1) / 1000) {
-  // 
-  //         // add past notifications to the list, only to the limit
-  //         notifications.push(...pastNotifications.slice(0, limit));
-  //         break;
-  //       }
-  // 
-  //       pastTimestamp -= week * 4**i; // week, 4 weeks, 16 weeks, ...
-  // 
-  //       i++;
-  //       continue;
-  //     }
-  // 
-  //     // add past notifications to the list, only to the limit
-  //     notifications.push(...pastNotifications.slice(0, limit));
-  //   }
-  // 
-  //   return notifications;
-  // }
+  // Get the last "youngest" notifications for a given account
+  // @dev Saves the oldest notification timestamp for the next call
+  public async getAccountLastNotifications (account: string, limit: number): Promise<Notification[]> {
+    // get timestamp from memory (oldest notification timestamp in this sesion)
+    let timestamp = this.oldestLastNotificationTimestamp.get(account);
+    if (!timestamp) {
+      // use now
+      timestamp = Math.floor(Date.now() / 1000);
+    }
+
+    const notifications = [] as Notification[];
+    const month = 30 * 7 * 24 * 60 * 60; // 1 month in seconds
+    const dateLimit = Date.UTC(2024,1,1) / 1000; // 1 Jan 2024
+
+    let i = 0;
+    let pastTimestamp = timestamp - month;
+
+    while (notifications.length < limit) {
+      const pastNotifications = await NotificationService.filterAccountNotifications(
+        account,
+        await this.getRawNotifications(pastTimestamp, timestamp),
+      );
+
+      if (pastNotifications.length < limit) {
+        // if timestamp less tham 1 April 2024, break
+        if (pastTimestamp < dateLimit) {
+          // add all notifications to the list
+          notifications.push(...pastNotifications);
+          this.oldestLastNotificationTimestamp.set(account, dateLimit);
+          break;
+        }
+
+        pastTimestamp -= month * 2**i; // month, 2 months, 4 months, 8 months, ...
+        i++;
+        continue;
+      }
+
+      // add past notifications to the list, only to the limit
+      notifications.push(...pastNotifications.slice(0, limit));
+
+      // save the oldest (last) notification timestamp
+      this.oldestLastNotificationTimestamp.set(
+        account,
+        notifications[notifications.length - 1].timestamp
+      );
+    }
+    return notifications;
+  }
+
+  public resetAccountLastNotifications (account: string) {
+    this.oldestLastNotificationTimestamp.delete(account);
+  }
 
   /// Set notification timestamp to current time which is used to fetch new notifications
   public setNotificationTimestamp (account: string) {
@@ -163,7 +190,8 @@ export default class NotificationService {
 
     // Helper function to push custom notification
     const pushCustomNotification = async (notification: Notification) => {
-      console.log("Processing custom notification:", notification.content?.content);
+      // dbg
+      // console.log("Processing custom notification:", notification.content?.content);
 
       // update eventString based on IFPS content, if available
       if (!notification.content) {
@@ -192,11 +220,12 @@ export default class NotificationService {
     };
 
     for (const notification of notifications) {
-      console.log(
-        "Processing notification:", notification.eventType,
-        ", for project:", notification.projectNest,
-        ", and account:", account
-      );
+      // dbg
+      // console.log(
+      //   "Processing notification:", notification.eventType,
+      //   ", for project:", notification.projectNest,
+      //   ", and account:", account
+      // );
 
       switch (notification.eventType) {
           case EventType.NewProjectOnDealFlow:
@@ -277,6 +306,17 @@ export default class NotificationService {
           default:
             console.warn(`Unknown event type: ${notification.eventType}, skipping...`);
       }
+    }
+
+    // remove not needed content field
+    for (const notification of accountNotifications) {
+      delete notification.content;
+    }
+
+    // determine "new" notifications
+    const timestamp = LocalStorage.getNotificationTimestamp(account);
+    for (const notification of accountNotifications) {
+      notification.new = notification.timestamp > timestamp;
     }
 
     return accountNotifications;
