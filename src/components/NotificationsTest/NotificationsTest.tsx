@@ -15,7 +15,7 @@ Config.setupConfig({
   EARLYSTAGE_MANAGER_CONTRACT: "0x425C95aB13d2caae4C38c86575fc3EF5Ad7cED4f",
 });
 
-const notificationService = new NotificationService();
+const notificationServicePromise = NotificationService.createInstance();
 
 export function NotificationsTest(): ReactElement {
 
@@ -34,6 +34,7 @@ export function NotificationsTest(): ReactElement {
 
   const allNotifications = async () => {
     log(`Getting all notifications for timestamp ${timestamp}`);
+    let notificationService = await notificationServicePromise
     const notifications = await notificationService.getRawNotificationsSince(timestamp);
     console.log("all notifications:", notifications);
     log(JSON.stringify(notifications, null, 2));
@@ -42,6 +43,7 @@ export function NotificationsTest(): ReactElement {
   const accountNotifications = async () => {
     log(`Getting account notifications for account ${account}`);
 
+    let notificationService = await notificationServicePromise
     const notifications = await notificationService.getAccountNewNotifications(account);
     console.log("account notifications:", notifications);
     log(JSON.stringify(notifications, null, 2));
@@ -50,14 +52,15 @@ export function NotificationsTest(): ReactElement {
   const accountLastNotifications = async () => {
     log(`Getting account last ${limit} notifications for account ${account}`);
 
+    let notificationService = await notificationServicePromise
     const notifications = await notificationService.getAccountLastNotifications(account, limit);
-    console.log("account last ${limit} notifications:", notifications);
     log(JSON.stringify(notifications, null, 2));
   };
 
   const accountResetLastNotifications = async () => {
     log(`Resetting account ${account} last notifications`);
 
+    let notificationService = await notificationServicePromise
     await notificationService.resetAccountLastNotifications(account);
     log("Account last notifications reset");
   };
@@ -66,6 +69,7 @@ export function NotificationsTest(): ReactElement {
     const now = Math.floor(Date.now() / 1000);
     log(`Setting notification timestamp to ${now} for account ${account}`);
 
+    let notificationService = await notificationServicePromise
     await notificationService.setNotificationTimestamp(account);
     log(`Notification timestamp set to: ${now} for account ${account}`);
   }
