@@ -4,7 +4,7 @@ module.exports = {
     es2021: true,
     mocha: true,
     node: true,
-    jest: true,
+    // jest: true,
   },
   parser: "@typescript-eslint/parser",
   plugins: ["@typescript-eslint", "import"],
@@ -19,7 +19,7 @@ module.exports = {
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:react/recommended",
-    "plugin:jest/recommended",
+    // "plugin:jest/recommended",
   ],
   rules: {
     "@typescript-eslint/ban-ts-comment": "off",
@@ -35,6 +35,7 @@ module.exports = {
       },
     ],
   },
+  ignorePatterns: ["lib/*", "src/react-app-env.d.ts"],
   settings: {
     react: {
       version: "detect",  // Helps linting with correct React version

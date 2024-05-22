@@ -3,10 +3,10 @@ import * as ProjectNest from "../abis/ProjectNest.json";
 import * as IERC20Metadata from "../abis/IERC20Metadata.json";
 
 import { ethers, Contract } from "ethers";
-import Config, { Network } from "./config";
+import Config from "./config";
 
 type ContractArtifacts = {
-  abi: any;
+  abi: any; // eslint-disable-line
   // bytecode: string;
 }
 
@@ -65,5 +65,5 @@ export default class BlockchainService {
     );
 
     return await Token.symbol();
-  }
+  };
 }

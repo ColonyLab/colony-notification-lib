@@ -33,50 +33,50 @@ export function mapEventType(
 ): string {
   switch (eventTypeEnum) {
     case EventType.NewProjectOnDealFlow:
-      return "New project on Deal Flow"
-      break
+      return "New project on Deal Flow";
+      break;
     case EventType.NestIsOpen:
-      return "NEST is now open"
-      break
+      return "NEST is now open";
+      break;
     case EventType.MovedToAnalysis:
-      return "Moved to Analysis"
-      break
+      return "Moved to Analysis";
+      break;
     case EventType.MovedToInvestmentCommittee:
-      return "Moved to Investment Committee"
-      break
+      return "Moved to Investment Committee";
+      break;
     case EventType.ClaimUsdcExcess:
-      return "Claim your USDC excess"
-      break
+      return "Claim your USDC excess";
+      break;
     case EventType.AvailableOnPortfolio: {
       if (optional === undefined || optional.ceTokenSymbol === undefined) {
-        throw new Error("ceTokenSymbol is required for AvailableOnPortfolio")
+        throw new Error("ceTokenSymbol is required for AvailableOnPortfolio");
       }
 
-      return `${optional.ceTokenSymbol} now available on Portfolio`
-      break
+      return `${optional.ceTokenSymbol} now available on Portfolio`;
+      break;
     }
     case EventType.TgeAvailableNow:
-      return "TGE available now"
-      break
+      return "TGE available now";
+      break;
     case EventType.CountdownSet: {
       if (optional === undefined || optional.actionTimestamp === undefined) {
-        throw new Error("actionTimestamp is required for CountdownSet")
+        throw new Error("actionTimestamp is required for CountdownSet");
       }
 
-      return `Countdown set to ${new Date(optional.actionTimestamp * 1000).toISOString()}`
-      break
+      return `Countdown set to ${new Date(optional.actionTimestamp * 1000).toISOString()}`;
+      break;
     }
     case EventType.CountdownHidden:
-      return "Countdown hidden"
-      break
+      return "Countdown hidden";
+      break;
     case EventType.CustomNotification: {
       if (optional === undefined || optional.customMessage === undefined) {
-        throw new Error("customNotification is required for CustomNotification")
+        throw new Error("customNotification is required for CustomNotification");
       }
-      return optional.customMessage
-      break
+      return optional.customMessage;
+      break;
     }
     default:
-      throw new Error("Invalid event type")
+      throw new Error("Invalid event type");
   }
 }

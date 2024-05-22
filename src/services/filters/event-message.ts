@@ -1,5 +1,4 @@
 import { constants } from 'ethers';
-import LocalStorage from '../local-storage';
 import EarlyStageService from '../early-stage-service';
 import { EventType, mapEventType } from '../types/event-type';
 import { Notification } from '../types/notification';
@@ -14,7 +13,7 @@ export async function filterEventMessage (
   const filterCustomNotification = async (notification: Notification) => {
     // update eventString based on IFPS content, if available
     if (!notification.content) {
-      return // skip notification with null content
+      return; // skip notification with null content
     }
 
     notification.eventMessage = mapEventType(notification.eventType, {
@@ -29,7 +28,7 @@ export async function filterEventMessage (
 
     const exist = await EarlyStageService.projectExist(notification.projectNest);
     if (!exist) {
-      return // skip if project does not exist
+      return; // skip if project does not exist
     }
 
     filteredNotifications.push(notification);

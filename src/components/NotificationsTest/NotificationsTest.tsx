@@ -1,6 +1,7 @@
 import React, { ReactElement, useEffect, useRef, useState } from 'react';
 
 import NotificationService from '../../services/notification-service';
+import GeneralNotifications from '../../services/general-notifications';
 import LocalStorage from '../../services/local-storage';
 import EarlyStageService from '../../services/early-stage-service';
 import Config, { Network } from '../../services/config';
@@ -17,6 +18,7 @@ Config.setupConfig({
   EARLYSTAGE_MANAGER_CONTRACT: "0x425C95aB13d2caae4C38c86575fc3EF5Ad7cED4f",
 });
 
+const generalNotifiactionsPromise = GeneralNotifications.createInstance();
 const notificationServicePromise = NotificationService.createInstance();
 
 export function NotificationsTest(): ReactElement {
@@ -36,8 +38,8 @@ export function NotificationsTest(): ReactElement {
 
   const allNotifications = async () => {
     log(`Getting all notifications for timestamp ${timestamp}`);
-    let notificationService = await notificationServicePromise
-    const notifications = await notificationService.getRawNotificationsSince(timestamp);
+    const generalNotifiactions = await generalNotifiactionsPromise;
+    const notifications = await generalNotifiactions.getNotificationsSince(timestamp);
     console.log("all notifications:", notifications);
     log(JSON.stringify(notifications, null, 2));
   };
@@ -69,7 +71,7 @@ export function NotificationsTest(): ReactElement {
   const accountLastNotifications = async () => {
     log(`Getting account last ${limit} notifications for account ${account}`);
 
-    let notificationService = await notificationServicePromise
+    const notificationService = await notificationServicePromise;
     const notifications = await notificationService.getAccountLastNotifications(account, limit);
     log(JSON.stringify(notifications, null, 2));
   };
@@ -77,7 +79,7 @@ export function NotificationsTest(): ReactElement {
   const accountResetLastNotifications = async () => {
     log(`Resetting account ${account} last notifications`);
 
-    let notificationService = await notificationServicePromise
+    const notificationService = await notificationServicePromise;
     await notificationService.resetAccountLastNotifications(account);
     log("Account last notifications reset");
   };
@@ -86,22 +88,22 @@ export function NotificationsTest(): ReactElement {
     const now = Math.floor(Date.now() / 1000);
     log(`Setting notification timestamp to ${now} for account ${account}`);
 
-    let notificationService = await notificationServicePromise
+    const notificationService = await notificationServicePromise;
     await notificationService.setNotificationTimestamp(account);
     log(`Notification timestamp set to: ${now} for account ${account}`);
-  }
+  };
 
   const clearNotifiactionTimestamp = async () => {
     log(`Clearing notification timestamp for account ${account}`);
 
     await LocalStorage.clearNotificationTimestamp(account);
     log(`Notification timestamp cleared for account ${account}`);
-  }
+  };
 
   const syncAccountNotifications = async () => {
     log(`Syncing notifications for account ${account}`);
 
-    let notificationService = await notificationServicePromise
+    const notificationService = await notificationServicePromise;
     const result = await notificationService.syncAccountNotifications(account);
     console.log("account sync:", result);
     log(result.toString());

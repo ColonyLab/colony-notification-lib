@@ -36,7 +36,7 @@ export default class GeneralNotifications {
     return notifications;
   }
 
-  private async init(): Promise<any> {
+  private async init(): Promise<void> {
     const from = dateLimit;
     const to = Math.floor(Date.now() / 1000);
     const raw = await this.fetchRawNotifications(from, to);
@@ -54,7 +54,7 @@ export default class GeneralNotifications {
   }
 
   // Fetch notifications from the subgraph
-  async fetchRawNotifications(from: number, to: number): Promise<Notification[]> {
+  private async fetchRawNotifications(from: number, to: number): Promise<Notification[]> {
     console.log("Fetching notifications from:", from, "to:", to);
 
     const data = await this.graphClient.request<
@@ -62,7 +62,7 @@ export default class GeneralNotifications {
     >
     (FETCH_NOTIFICATIONS_QUERY, {
       from,
-      to
+      to,
     }) as FetchNotificationsResult;
 
     console.log("Notifications fetched:", data.notifications.length);
@@ -70,7 +70,7 @@ export default class GeneralNotifications {
     return data.notifications;
   }
 
-  async fetchNewRawNotifications(): Promise<Notification[]> {
+  private async fetchNewRawNotifications(): Promise<Notification[]> {
     const to = Math.floor(Date.now() / 1000);
 
     console.log("Fetching new notifications from:", this.lastSyncTimestamp, "to:", to.toString());

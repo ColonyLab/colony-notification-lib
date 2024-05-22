@@ -14,7 +14,7 @@ export default class NotificationService {
 
   private constructor(){}
 
-  private async init(): Promise<any> {
+  private async init(): Promise<void> {
     this.generalNotifications = await GeneralNotifications.createInstance();
     this.lastSyncTimestamp = Math.floor(Date.now() / 1000);
   }
@@ -40,7 +40,7 @@ export default class NotificationService {
       account,
       await this.generalNotifications.getNotificationsTo(timestamp),
       limit,
-    )
+    );
 
     if (notifications.length === 0) {
       this.accountLastNotificationsTimestamp.set(account, 0);
@@ -49,7 +49,7 @@ export default class NotificationService {
 
     this.accountLastNotificationsTimestamp.set(
       account,
-      notifications[notifications.length - 1].timestamp
+      notifications[notifications.length - 1].timestamp,
     );
 
     return notifications;

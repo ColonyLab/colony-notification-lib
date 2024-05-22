@@ -27,17 +27,6 @@ import { NotificationService } from '@colony/colony-notification-lib/lib';
 const notificationService = await NotificationService.createInstance();
 ```
 
-#### Get raw notifications for a specific time range:
-```javascript
-const notifications = await notificationService.getRawNotifications(fromTimestamp, toTimestamp);
-const notifications2 = await notificationService.getRawNotificationsSince(fromTimestamp);
-```
-
-#### Get new notifications for account
-```javascript
-const newNotifications = await notificationService.getAccountNewNotifications(account);
-```
-
 #### Get last account notifications wth a limit (allows to load more using the same function):
 ```javascript
 // load newest 5 notifications
@@ -50,12 +39,46 @@ const nextNotifications = await notificationService.getAccountLastNotifications(
 notificationService.resetAccountLastNotifications(account);
 ```
 
+#### Sync Account Notifications
+
+Check for if there are any new notifications for the account:
+```javascript
+const result = await notificationService.syncAccountNotifications(account); // true/false
+
+// reset last notifications to load new ones
+notificationService.resetAccountLastNotifications(account);
+```
+
 #### Set notification timestamp, to mark the time when user has seen the notification:
 ```javascript
 notifications.setNotificationTimestamp(account);
 ```
 
-## LocalStorage
+### General Notifications
+
+Allows to get general notifications unrelated to any specific account.
+```javascript
+import { GeneralNotifications } from '@colony/colony-notification-lib/lib';
+
+const generalNotifications = await GeneralNotifications.createInstance();
+```
+
+#### Get general notifications for a specific time range:
+```javascript
+const notifications = await GeneralNotifications.getNotifications(fromTimestamp, toTimestamp);
+const notifications2 = await notificationService.getRawNotificationsSince(fromTimestamp);
+
+const notifications3 = await notificationService.getRawNotificationsTo(toTimestamp);
+```
+
+#### Sync General Notifications
+
+Check for if there are any new general notifications.
+```javascript
+const result = await generalNotifications.syncNotifications(); // true/false
+```
+
+### LocalStorage
 
 Allows to have more control over the notifications timestamps:
 ```javascript

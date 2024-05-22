@@ -56,7 +56,7 @@ export default class EarlyStageService {
 
   static projectName(projectNest: string): string | null {
     if (!memCache.projectName.has(projectNest)) {
-      return null
+      return null;
     }
 
     return memCache.projectName.get(projectNest)!;

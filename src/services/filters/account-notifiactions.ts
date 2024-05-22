@@ -1,7 +1,7 @@
 import { constants } from 'ethers';
 import LocalStorage from '../local-storage';
 import EarlyStageService from '../early-stage-service';
-import { EventType, mapEventType } from '../types/event-type';
+import { EventType } from '../types/event-type';
 import { Notification } from '../types/notification';
 
 // Filter notifications by eventType for a given account
@@ -26,7 +26,7 @@ export async function filterAccountNotifications (
       notification.projectNest,
       account,
     );
-    return allocation > 0
+    return allocation > 0;
   };
 
   // Helper function to check if account has overinvestment
@@ -35,7 +35,7 @@ export async function filterAccountNotifications (
       notification.projectNest,
       account,
     );
-    return overinvestment > 0
+    return overinvestment > 0;
   };
 
   // Helper function to push custom notification
@@ -60,7 +60,7 @@ export async function filterAccountNotifications (
     console.log(
       "Processing account notification:", notification.eventType,
       ", for project:", notification.projectNest,
-      ", and account:", account
+      ", and account:", account,
     ); // dbg
 
     switch (notification.eventType) {

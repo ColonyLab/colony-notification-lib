@@ -2,6 +2,7 @@
 // Contains the part of the code that is exposed as a Libary API
 
 import NotificationService from "./services/notification-service";
+import GeneralNotifications from "./services/general-notifications";
 import { Notification } from "./services/types/notification";
 import { EventType } from "./services/types/event-type";
 import EarlyStageService from "./services/early-stage-service";
@@ -11,6 +12,7 @@ import Config, { Network, ConfigValues } from "./services/config";
 
 export {
   NotificationService,
+  GeneralNotifications,
   EventType,
   Notification,
 
@@ -20,5 +22,5 @@ export {
 
   Config,
   Network,
-  ConfigValues
+  ConfigValues,
 };

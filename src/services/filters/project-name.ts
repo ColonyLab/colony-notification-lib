@@ -15,7 +15,7 @@ export function filterProjectsNames(notifications: Notification[]): Notification
         notification.eventType === EventType.CustomNotification &&
         notification.projectNest === constants.AddressZero
       ) {
-        notification.projectName = undefined
+        notification.projectName = undefined;
         return true;
       }
 
@@ -24,5 +24,5 @@ export function filterProjectsNames(notifications: Notification[]): Notification
 
     notification.projectName = name;
     return true;
-  })
+  });
 }
