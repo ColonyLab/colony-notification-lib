@@ -4,8 +4,8 @@ import { Notification } from './notification';
 export const FETCH_NOTIFICATIONS_QUERY = gql`
 query fetchNotifications($from: Int!, $to: Int!) {
   notifications(orderBy: timestamp, orderDirection: desc, where: {
-    timestamp_gte: $from,
-    timestamp_lt: $to
+    timestamp_gt: $from,
+    timestamp_lte: $to
   }) {
     id
     timestamp

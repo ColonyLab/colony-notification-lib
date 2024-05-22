@@ -1,3 +1,4 @@
+import { constants } from 'ethers';
 import LocalStorage from '../local-storage';
 import EarlyStageService from '../early-stage-service';
 import { EventType, mapEventType } from '../types/event-type';
@@ -39,9 +40,9 @@ export async function filterAccountNotifications (
 
   // Helper function to push custom notification
   const pushCustomNotification = async (notification: Notification) => {
-    // if projectNest is zero address, it is a global notification
-    const zeroAddress = "0x0000000000000000000000000000000000000000";
-    if (notification.projectNest === zeroAddress) {
+
+    // if projectNest is zero address, it is a global notification for all users
+    if (notification.projectNest === constants.AddressZero) {
       accountNotifications.push(notification);
       return;
     }

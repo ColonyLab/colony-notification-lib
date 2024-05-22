@@ -30,17 +30,22 @@ export default class NotificationService {
     this.earlyStageService = new EarlyStageService();
   }
 
-  private async init(): Promise<any> {
-    let notifications = await this.fetchRawNotifications();
+  private async filterRawNotifications(notifications: Notification[]): Promise<Notification[]> {
+    const projects = Array.from(new Set(notifications.map(n => n.projectNest))); // unique projects
+    await this.earlyStageService.fetchProjectNames(projects); // fetch project names
+
     notifications = await filterEventMessage(await notifications);
+    notifications = await filterProjectsNames(await notifications);
 
-    // unique projects
-    const projects = Array.from(new Set(notifications.map(n => n.projectNest)));
-    await this.earlyStageService.fetchProjectNames(projects);
+    return notifications;
+  }
 
-    notifications = filterProjectsNames(notifications);
+  private async init(): Promise<any> {
+    const from = dateLimit;
+    const to = Math.floor(Date.now() / 1000);
+    const raw = await this.fetchRawNotifications(from, to);
 
-    this.notificationCache = notifications;
+    this.notificationCache = await this.filterRawNotifications(raw);
   }
 
   // Factory method to create an instance of NotificationService
@@ -52,11 +57,8 @@ export default class NotificationService {
   }
 
   // Fetch notifications from the subgraph
-  async fetchRawNotifications(): Promise<Notification[]> {
-    const from = dateLimit;
-    const to = Math.floor(Date.now() / 1000);
-
-    console.log("Fetching notifications from:", from.toString(), "to:", to.toString());
+  async fetchRawNotifications(from: number, to: number): Promise<Notification[]> {
+    console.log("Fetching notifications from:", from, "to:", to);
 
     const data = await this.graphClient.request<
       FetchNotificationsResult
@@ -69,6 +71,17 @@ export default class NotificationService {
     console.log("Notifications fetched:", data.notifications.length);
 
     return data.notifications;
+  }
+
+  async fetchNewRawNotifications(): Promise<Notification[]> {
+    if (this.notificationCache.length === 0) {
+      return [];
+    }
+    const from = this.notificationCache[0].timestamp // newest saved notification timestamp
+    const to = Math.floor(Date.now() / 1000);
+
+    console.log("Fetching new notifications from:", from.toString(), "to:", to.toString());
+    return this.fetchRawNotifications(from, to);
   }
 
   // Get notifications from the memory cache
@@ -100,15 +113,32 @@ export default class NotificationService {
     return this.notificationCache;
   }
 
-  public async getAccountNewNotifications (account: string): Promise<Notification[]> {
-    const timestamp = LocalStorage.getNotificationTimestamp(account);
+  public async syncAccountNotifications (account: string): Promise<boolean> {
+    const raw = await this.fetchNewRawNotifications();
+    if (raw.length === 0) {
+      return false;
+    }
 
-    const notifications = await filterAccountNotifications(
+    const filtered = await this.filterRawNotifications(raw);
+    if (raw.length === 0) {
+      return false;
+    }
+
+    const accountNotifications = await filterAccountNotifications(
       account,
-      await this.getRawNotificationsSince(timestamp),
+      filtered,
     );
 
-    return notifications;
+    if (accountNotifications.length === 0) {
+      return false;
+    }
+
+    // apply new filtered notifications at the beginning of the cache
+    this.notificationCache = filtered.concat(this.notificationCache);
+
+    this.resetAccountLastNotifications(account);
+
+    return true;
   }
 
   // Get the last "youngest" notifications for a given account

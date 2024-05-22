@@ -42,15 +42,6 @@ export function NotificationsTest(): ReactElement {
     log(JSON.stringify(notifications, null, 2));
   };
 
-  const accountNotifications = async () => {
-    log(`Getting account notifications for account ${account}`);
-
-    let notificationService = await notificationServicePromise
-    const notifications = await notificationService.getAccountNewNotifications(account);
-    console.log("account notifications:", notifications);
-    log(JSON.stringify(notifications, null, 2));
-  };
-
   const projectExist = async () => {
     log(`EarlyStageService: project: ${projectNest} exist?`);
 
@@ -106,6 +97,15 @@ export function NotificationsTest(): ReactElement {
     await LocalStorage.clearNotificationTimestamp(account);
     log(`Notification timestamp cleared for account ${account}`);
   }
+
+  const syncAccountNotifications = async () => {
+    log(`Syncing notifications for account ${account}`);
+
+    let notificationService = await notificationServicePromise
+    const result = await notificationService.syncAccountNotifications(account);
+    console.log("account sync:", result);
+    log(result.toString());
+  };
 
   // -- Console log messages --
   const [messages, setMessages] = useState([]);
@@ -196,15 +196,6 @@ export function NotificationsTest(): ReactElement {
         <div className="button-group">
           <button
             className="button"
-            onClick={accountNotifications}
-          >
-            Account Notifications
-          </button>
-        </div>
-
-        <div className="button-group">
-          <button
-            className="button"
             onClick={isAccountInvolved}
           >
             Is Account Involved
@@ -254,6 +245,16 @@ export function NotificationsTest(): ReactElement {
             Clear Notification Timestamp
           </button>
         </div>
+
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={syncAccountNotifications}
+          >
+            Sync Account Notifications
+          </button>
+        </div>
+
       </div>
 
       <div className="console">

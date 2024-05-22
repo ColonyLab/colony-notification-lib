@@ -1,3 +1,4 @@
+import { constants } from 'ethers';
 import LocalStorage from '../local-storage';
 import EarlyStageService from '../early-stage-service';
 import { EventType, mapEventType } from '../types/event-type';
@@ -19,6 +20,12 @@ export async function filterEventMessage (
     notification.eventMessage = mapEventType(notification.eventType, {
       customMessage: notification.content.content,
     });
+
+    // if projectNest is zero address, it is a global notification
+    if (notification.projectNest === constants.AddressZero) {
+      filteredNotifications.push(notification);
+      return;
+    }
 
     const exist = await EarlyStageService.projectExist(notification.projectNest);
     if (!exist) {
