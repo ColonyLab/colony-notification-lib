@@ -9,7 +9,8 @@ import { Config, Network, ConfigValues } from '@colony/colony-notification-lib/l
 Config.setupConfig({
   NETWORK: Network.FUJI,
   JSON_RPC_URL: 'https://api.avax-test.network/ext/bc/C/rpc',
-  GRAPH_NOTIFICATIONS_URL: 'https://api.thegraph.com/subgraphs/name/notifications',
+  GRAPH_NOTIFICATIONS_URL: 'https://api.thegraph.com/subgraphs/colony/notifications',
+  GRAPH_EARLYSTAGE_URL: 'https://api.thegraph.com/subgraphs/colony/earlystage',
   EARLYSTAGE_MANAGER_CONTRACT: '0x7f4f8e8f3b3d6b5f4f3f3f3f3f3f3f3f3f3f3f3f',
 } as ConfigValues);
 ```
@@ -92,6 +93,11 @@ const investment = await EarlyStageService.accountInvestment(projectNest, accoun
 const overinvestment = await EarlyStageService.accountOverinvestment(projectNest, account);
 ```
 
+EarlyStageService could be also instantiated and used to get project name:
+```javascript
+const earlyStageService = new EarlyStageService();
+const projectName = await earlyStageService.getProjectName(projectNest);
+```
 
 ## Available Scripts
 

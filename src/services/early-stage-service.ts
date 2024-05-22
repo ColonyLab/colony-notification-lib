@@ -1,8 +1,12 @@
 import BlockchainService from "./blockchain-service";
+import Config from './config';
+import { GraphQLClient } from 'graphql-request';
+import { FETCH_PROJECTS_NAMES_QUERY, FetchProjectsNames } from './types/graph-queries';
 
 // this simple cache is used to reduce the number of calls to the blockchain
 const memCache = {
   projectExist: new Map<string, boolean>(),
+  projectName: new Map<string, string>(),
 
   // for account mapping, use projectNest + account as the key
   accountInvolved: new Map<string, boolean>(),
@@ -12,6 +16,32 @@ const memCache = {
 };
 
 export default class EarlyStageService {
+  graphClient: GraphQLClient;
+
+  constructor(){
+    this.graphClient = new GraphQLClient(Config.getConfig(
+      'GRAPH_EARLYSTAGE_URL',
+    ));
+  }
+
+  // Fetch names from the subgraph
+  async fetchProjectNames(projects: string[]): Promise<void> {
+    console.log("Fetching projects names for:", projects.length, "projects");
+
+    const data = await this.graphClient.request<
+      FetchProjectsNames
+    >
+    (FETCH_PROJECTS_NAMES_QUERY, {
+      projects,
+    }) as FetchProjectsNames;
+
+    console.log("Names fetched:", data.projects.length);
+
+    for (const project of data.projects) {
+      memCache.projectName.set(project.id, project.name);
+    }
+  }
+
   static async projectExist(projectNest: string): Promise<boolean> {
     if (memCache.projectExist.has(projectNest)) {
       return memCache.projectExist.get(projectNest)!;
@@ -22,6 +52,14 @@ export default class EarlyStageService {
 
     memCache.projectExist.set(projectNest, exist);
     return exist;
+  }
+
+  static projectName(projectNest: string): string | null {
+    if (!memCache.projectName.has(projectNest)) {
+      return null
+    }
+
+    return memCache.projectName.get(projectNest)!;
   }
 
   // Checks if the account was involved in ProjectNest by using the maxAllocation function.

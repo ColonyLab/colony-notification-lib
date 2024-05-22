@@ -13,7 +13,3 @@ export interface Notification {
   new?: boolean // true for new notification, false for past notification
 }
 
-export interface getNotificationsResult {
-  notifications: Notification[]
-}
-

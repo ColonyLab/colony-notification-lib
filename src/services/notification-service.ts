@@ -3,14 +3,18 @@ import Config from './config';
 import LocalStorage from './local-storage';
 import EarlyStageService from './early-stage-service';
 import { graphql } from 'graphql';
-import { Notification, getNotificationsResult } from './types/notification';
+import { Notification } from './types/notification';
+import { FETCH_NOTIFICATIONS_QUERY, FetchNotificationsResult } from './types/graph-queries';
+
 import { filterAccountNotifications } from './filters/account-notifiactions';
 import { filterEventMessage } from './filters/event-message';
+import { filterProjectsNames } from './filters/project-name';
 
 const dateLimit = Date.UTC(2024,1,1) / 1000; // 1 Jan 2024
 
 export default class NotificationService {
   graphClient: GraphQLClient;
+  earlyStageService: EarlyStageService;
 
   // notification cache
   notificationCache: Notification[] = [];
@@ -18,34 +22,23 @@ export default class NotificationService {
   // map account to the oldest last get notification timestamp
   oldestLastNotificationTimestamp: Map<string, number> = new Map();
 
-  static GRAPH_QUERY = gql`
-  query getNotifications($from: Int!, $to: Int!) {
-    notifications(orderBy: timestamp, orderDirection: desc, where: {
-      timestamp_gte: $from,
-      timestamp_lt: $to
-    }) {
-      id
-      timestamp
-      projectNest
-      eventType
-      additionalData
-      content {
-        id
-        content
-      }
-    }
-  }
-  `;
-
   private constructor(){
     this.graphClient = new GraphQLClient(Config.getConfig(
       'GRAPH_NOTIFICATIONS_URL',
     ));
+
+    this.earlyStageService = new EarlyStageService();
   }
 
   private async init(): Promise<any> {
-    const rawNotifications = await this.fetchRawNotifications();
-    const notifications = await filterEventMessage(await rawNotifications);
+    let notifications = await this.fetchRawNotifications();
+    notifications = await filterEventMessage(await notifications);
+
+    // unique projects
+    const projects = Array.from(new Set(notifications.map(n => n.projectNest)));
+    await this.earlyStageService.fetchProjectNames(projects);
+
+    notifications = filterProjectsNames(notifications);
 
     this.notificationCache = notifications;
   }
@@ -66,12 +59,12 @@ export default class NotificationService {
     console.log("Fetching notifications from:", from.toString(), "to:", to.toString());
 
     const data = await this.graphClient.request<
-      getNotificationsResult
+      FetchNotificationsResult
     >
-    (NotificationService.GRAPH_QUERY, {
+    (FETCH_NOTIFICATIONS_QUERY, {
       from,
       to
-    }) as getNotificationsResult;
+    }) as FetchNotificationsResult;
 
     console.log("Notifications fetched:", data.notifications.length);
 

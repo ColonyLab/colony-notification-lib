@@ -11,7 +11,8 @@ Config.setupConfig({
   NETWORK: Network.FUJI,
 
   JSON_RPC_URL: "https://api.avax-test.network/ext/bc/C/rpc",
-  GRAPH_NOTIFICATIONS_URL: 'https://graph.colonylab.io/subgraphs/name/colony/notifications-fuji-develop',
+  GRAPH_NOTIFICATIONS_URL: "https://graph.colonylab.io/subgraphs/name/colony/notifications-fuji-develop",
+  GRAPH_EARLYSTAGE_URL: "https://graph.colonylab.io/subgraphs/name/colony/earlystage-fuji-develop",
 
   EARLYSTAGE_MANAGER_CONTRACT: "0x425C95aB13d2caae4C38c86575fc3EF5Ad7cED4f",
 });
