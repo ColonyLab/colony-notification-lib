@@ -23,16 +23,16 @@ import { NotificationService } from '@colony/colony-notification-lib/lib';
 
 #### Create notification service:
 ```javascript
-const notificationService = new NotificationService();
+const notificationService = await NotificationService.createInstance();
 ```
 
-#### Get raw notifications:
+#### Get raw notifications for a specific time range:
 ```javascript
 const notifications = await notificationService.getRawNotifications(fromTimestamp, toTimestamp);
 const notifications2 = await notificationService.getRawNotificationsSince(fromTimestamp);
 ```
 
-#### Get new notifications for a specific account:
+#### Get new notifications for account
 ```javascript
 const newNotifications = await notificationService.getAccountNewNotifications(account);
 ```
@@ -52,6 +52,22 @@ notificationService.resetAccountLastNotifications(account);
 #### Set notification timestamp, to mark the time when user has seen the notification:
 ```javascript
 notifications.setNotificationTimestamp(account);
+```
+
+## LocalStorage
+
+Allows to have more control over the notifications timestamps:
+```javascript
+import { LocalStorage } from '@colony/colony-notification-lib/lib';
+
+// get notification timestamp
+const timestamp = LocalStorage.getNotificationTimestamp(account);
+
+// set notification timestamp
+LocalStorage.setNotificationTimestamp(account, timestamp);
+
+// clear notification timestamp
+LocalStorage.clear(account);
 ```
 
 ### Early Stage Service

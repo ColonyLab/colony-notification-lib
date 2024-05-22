@@ -43,29 +43,27 @@ export default class NotificationService {
     ));
   }
 
-  private async init(
-    notifications: Notification[]
-  ): Promise<any> {
+  private async init(): Promise<any> {
+    const rawNotifications = await this.fetchRawNotifications();
+    const notifications = await filterEventMessage(await rawNotifications);
+
     this.notificationCache = notifications;
   }
 
   // Factory method to create an instance of NotificationService
   public static async createInstance(): Promise<NotificationService> {
     const instance = new NotificationService();
-
-    const rawNotifications = await instance.fetchRawNotifications();
-    const notifications = await filterEventMessage(await rawNotifications);
-    await instance.init(notifications);
+    await instance.init();
 
     return instance;
   }
 
   // Fetch notifications from the subgraph
-  public async fetchRawNotifications(): Promise<Notification[]> {
+  async fetchRawNotifications(): Promise<Notification[]> {
     const from = dateLimit;
     const to = Math.floor(Date.now() / 1000);
 
-    // console.log("Fetching notifications from:", from.toString(), "to:", to.toString());
+    console.log("Fetching notifications from:", from.toString(), "to:", to.toString());
 
     const data = await this.graphClient.request<
       getNotificationsResult
@@ -74,6 +72,8 @@ export default class NotificationService {
       from,
       to
     }) as getNotificationsResult;
+
+    console.log("Notifications fetched:", data.notifications.length);
 
     return data.notifications;
   }
@@ -152,7 +152,10 @@ export default class NotificationService {
 
   /// Set notification timestamp to current time which is used to fetch new notifications
   public setNotificationTimestamp (account: string) {
+    // use current timestamp
+    const timestamp = Math.floor(Date.now() / 1000);
+
     // set timestamp to local storage
-    LocalStorage.setNotificationTimestamp(account);
+    LocalStorage.setNotificationTimestamp(account, timestamp);
   }
 }

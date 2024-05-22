@@ -22,11 +22,8 @@ export default class LocalStorage {
     return timestamp || 0;
   }
 
-  static setNotificationTimestamp(account: string) {
+  static setNotificationTimestamp(account: string, timestamp: number) {
     const key = `notifications-${account}`;
-
-    // use current timestamp
-    const timestamp = Math.floor(Date.now() / 1000);
     LocalStorage.setItem(key, timestamp);
   }
 

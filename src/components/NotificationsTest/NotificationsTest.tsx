@@ -1,6 +1,7 @@
 import React, { ReactElement, useEffect, useRef, useState } from 'react';
 
 import NotificationService from '../../services/notification-service';
+import LocalStorage from '../../services/local-storage';
 import EarlyStageService from '../../services/early-stage-service';
 import Config, { Network } from '../../services/config';
 import './NotificationsTest.css';
@@ -49,6 +50,30 @@ export function NotificationsTest(): ReactElement {
     log(JSON.stringify(notifications, null, 2));
   };
 
+  const projectExist = async () => {
+    log(`EarlyStageService: project: ${projectNest} exist?`);
+
+    const exist = await EarlyStageService.projectExist(projectNest);
+    console.log("projectExist:", exist);
+    log(exist.toString());
+  };
+
+  const isAccountInvolved = async () => {
+    log(`EarlyStageService: Account ${account} involved in nest ${projectNest}?`);
+
+    const involved = await EarlyStageService.isAccountInvolved(projectNest, account);
+    console.log("isAccountInvolved:", involved);
+    log(involved.toString());
+  };
+
+  const accountAllocation = async () => {
+    log(`EarlyStageService: Account ${account} allocation in nest ${projectNest}?`);
+
+    const allocation = await EarlyStageService.accountAllocation(projectNest, account);
+    console.log("allocation:", allocation);
+    log(allocation.toString());
+  };
+
   const accountLastNotifications = async () => {
     log(`Getting account last ${limit} notifications for account ${account}`);
 
@@ -74,29 +99,12 @@ export function NotificationsTest(): ReactElement {
     log(`Notification timestamp set to: ${now} for account ${account}`);
   }
 
-  const projectExist = async () => {
-    log(`EarlyStageService: project: ${projectNest} exist?`);
+  const clearNotifiactionTimestamp = async () => {
+    log(`Clearing notification timestamp for account ${account}`);
 
-    const exist = await EarlyStageService.projectExist(projectNest);
-    console.log("projectExist:", exist);
-    log(exist.toString());
-  };
-
-  const isAccountInvolved = async () => {
-    log(`EarlyStageService: Account ${account} involved in nest ${projectNest}?`);
-
-    const involved = await EarlyStageService.isAccountInvolved(projectNest, account);
-    console.log("isAccountInvolved:", involved);
-    log(involved.toString());
-  };
-
-  const accountAllocation = async () => {
-    log(`EarlyStageService: Account ${account} allocation in nest ${projectNest}?`);
-
-    const allocation = await EarlyStageService.accountAllocation(projectNest, account);
-    console.log("allocation:", allocation);
-    log(allocation.toString());
-  };
+    await LocalStorage.clearNotificationTimestamp(account);
+    log(`Notification timestamp cleared for account ${account}`);
+  }
 
   // -- Console log messages --
   const [messages, setMessages] = useState([]);
@@ -198,7 +206,7 @@ export function NotificationsTest(): ReactElement {
             className="button"
             onClick={isAccountInvolved}
           >
-            isAccountInvolved
+            Is Account Involved
           </button>
         </div>
         <div className="button-group">
@@ -206,7 +214,7 @@ export function NotificationsTest(): ReactElement {
             className="button"
             onClick={accountAllocation}
           >
-            accountAllocation
+            Account Allocation
           </button>
         </div>
 
@@ -215,7 +223,7 @@ export function NotificationsTest(): ReactElement {
             className="button"
             onClick={() => accountLastNotifications()}
           >
-            AccountLastNotifications
+            Account LastNotifications
           </button>
         </div>
 
@@ -224,7 +232,7 @@ export function NotificationsTest(): ReactElement {
             className="button"
             onClick={accountResetLastNotifications}
           >
-            ResetAccountLastNotifications
+            Reset Account LastNotifications
           </button>
         </div>
 
@@ -233,7 +241,16 @@ export function NotificationsTest(): ReactElement {
             className="button"
             onClick={setNotificationTimestamp}
           >
-            SetNotificationTimestamp
+            Set Notification Timestamp
+          </button>
+        </div>
+
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={clearNotifiactionTimestamp}
+          >
+            Clear Notification Timestamp
           </button>
         </div>
       </div>
