@@ -3,6 +3,7 @@ import LocalStorage from '../local-storage';
 import EarlyStageService from '../early-stage-service';
 import { EventType } from '../types/event-type';
 import { Notification } from '../types/notification';
+import { Phase } from '../types/project-phase';
 
 // Filter notifications by eventType for a given account
 export async function filterAccountNotifications(
@@ -85,6 +86,12 @@ export async function filterAccountNotifications(
           break;
 
         case EventType.CountdownSet:
+          //  add DealFlow notifications to everyone
+          if (notification.countdownNextPhase === Phase.DealFlow) {
+            accountNotifications.push(notification);
+            break;
+          }
+
           if (await involved(notification)) {
             accountNotifications.push(notification);
           }

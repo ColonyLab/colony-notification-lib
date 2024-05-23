@@ -1,3 +1,5 @@
+// Flexible notification interface for both raw and processed notifications
+// It could be splited into 2 more strict interfaces
 export interface Notification {
   id: string
   timestamp: number
@@ -10,6 +12,6 @@ export interface Notification {
     content: string
   }
   eventMessage?: string // event message
+  countdownNextPhase?: number
   new?: boolean // true for new notification, false for past notification
 }
-

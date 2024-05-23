@@ -2,12 +2,50 @@ import { constants } from 'ethers';
 import EarlyStageService from '../early-stage-service';
 import { EventType, mapEventType } from '../types/event-type';
 import { Notification } from '../types/notification';
+import { Phase } from '../types/project-phase';
 
 // Fill event message based on event type
 export async function filterEventMessage(
   notifications: Notification[],
 ): Promise<Notification[]> {
   const filteredNotifications = [];
+
+  // Helper function to push countdown set notification
+  const filterCountdownSet = async (notification: Notification) => {
+    // update eventString based on IFPS content, if available
+    if (!notification.content) {
+      return; // skip notification with null content
+    }
+
+    try {
+      const parsedContent = JSON.parse(notification.content.content);
+
+      if (parsedContent.type !== "nextPhase") {
+        return; // skip other types
+      }
+
+      const phaseIdStr = parsedContent.phaseId.match(/\[p(\d+)\]/)?.[1];
+      if (!phaseIdStr) {
+        return; // skip if phaseId dont match
+      }
+
+      const phaseId = parseInt(phaseIdStr);
+      if (phaseId === Phase.Pending || phaseId === Phase.Rejected) {
+        return; // skip Pending and Rejected phases
+      }
+
+      notification.countdownNextPhase = phaseId;
+
+      notification.eventMessage = mapEventType(notification.eventType, {
+        actionTimestamp: notification.timestamp,
+        countdownNextPhase: phaseId,
+      });
+
+      filteredNotifications.push(notification);
+    } catch (error) {
+      // skip if content is not parsable
+    }
+  };
 
   // Helper function to push custom notification
   const filterCustomNotification = async (notification: Notification) => {
@@ -51,10 +89,7 @@ export async function filterEventMessage(
 
         // add action timestamp to the event message
         case EventType.CountdownSet:
-          notification.eventMessage = mapEventType(notification.eventType, {
-            actionTimestamp: notification.timestamp,
-          });
-          filteredNotifications.push(notification);
+          await filterCountdownSet(notification);
           break;
 
         case EventType.CountdownHidden:

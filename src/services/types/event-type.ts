@@ -1,3 +1,5 @@
+import { mapProjectPhase, Phase } from "./project-phase";
+
 export enum EventType {
   NewProjectOnDealFlow, // 0
   NestIsOpen, // 1
@@ -20,6 +22,7 @@ export type eventTypeOpt = {
   ceTokenSymbol?: string,
   actionTimestamp?: number,
   customMessage?: string,
+  countdownNextPhase?: Phase,
 }
 
 /**
@@ -31,6 +34,17 @@ export function mapEventType(
   eventTypeEnum: EventType,
   optional?: eventTypeOpt,
 ): string {
+
+  const requireOptional = (
+    key: string,
+    eventType: EventType,
+  ): void => {
+    // @ts-ignore-next-line
+    if (optional === undefined || optional[key] === undefined) {
+      throw new Error(`${key} is required for ${eventType}`);
+    }
+  };
+
   switch (eventTypeEnum) {
     case EventType.NewProjectOnDealFlow:
       return "New project on Deal Flow";
@@ -48,32 +62,35 @@ export function mapEventType(
       return "Claim your USDC excess";
       break;
     case EventType.AvailableOnPortfolio: {
-      if (optional === undefined || optional.ceTokenSymbol === undefined) {
-        throw new Error("ceTokenSymbol is required for AvailableOnPortfolio");
-      }
+      requireOptional("ceTokenSymbol", EventType.AvailableOnPortfolio);
 
-      return `${optional.ceTokenSymbol} now available on Portfolio`;
+      return `${optional!.ceTokenSymbol} now available on Portfolio`;
       break;
     }
     case EventType.TgeAvailableNow:
       return "TGE available now";
       break;
     case EventType.CountdownSet: {
-      if (optional === undefined || optional.actionTimestamp === undefined) {
-        throw new Error("actionTimestamp is required for CountdownSet");
-      }
+      requireOptional("actionTimestamp", EventType.CountdownSet);
+      requireOptional("countdownNextPhase", EventType.CountdownSet);
 
-      return `Countdown set to ${new Date(optional.actionTimestamp * 1000).toISOString()}`;
+      const phase = mapProjectPhase(optional!.countdownNextPhase!);
+
+      console.log("action timestamp:", optional!.actionTimestamp!); // dbg
+      const date = new Date(optional!.actionTimestamp! * 1000).toISOString();
+
+      console.log("date", date); // dbg
+
+      return `${phase} countdown set to ${date}`;
       break;
     }
     case EventType.CountdownHidden:
       return "Countdown hidden";
       break;
     case EventType.CustomNotification: {
-      if (optional === undefined || optional.customMessage === undefined) {
-        throw new Error("customNotification is required for CustomNotification");
-      }
-      return optional.customMessage;
+      requireOptional("customMessage", EventType.CustomNotification);
+
+      return optional!.customMessage!;
       break;
     }
     default:
