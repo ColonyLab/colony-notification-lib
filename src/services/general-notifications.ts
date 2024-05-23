@@ -7,7 +7,7 @@ import { FETCH_NOTIFICATIONS_QUERY, FetchNotificationsResult } from './types/gra
 import { filterEventMessage } from './filters/event-message';
 import { filterProjectsNames } from './filters/project-name';
 
-const dateLimit = Date.UTC(2024,1,1) / 1000; // 1 Jan 2024
+export const dateLimit = Date.UTC(2024,1,1) / 1000; // 1 Jan 2024
 
 /// Fetches and handles notifications not related to a specific account
 export default class GeneralNotifications {

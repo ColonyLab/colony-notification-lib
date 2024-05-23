@@ -1,5 +1,5 @@
 import LocalStorage from './local-storage';
-import GeneralNotifications from './general-notifications';
+import GeneralNotifications, { dateLimit } from './general-notifications';
 import { Notification } from './types/notification';
 
 import { filterAccountNotifications } from './filters/account-notifiactions';
@@ -44,13 +44,14 @@ export default class NotificationService {
     );
 
     if (notifications.length === 0) {
-      this.accountLastNotificationsTimestamp.set(account, 0);
+      this.accountLastNotificationsTimestamp.set(account, dateLimit);
       return [];
     }
 
+    // -1 becouse last notification was already loaded
     this.accountLastNotificationsTimestamp.set(
       account,
-      notifications[notifications.length - 1].timestamp,
+      notifications[notifications.length - 1].timestamp - 1,
     );
 
     return notifications;
