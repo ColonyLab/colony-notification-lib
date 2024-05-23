@@ -5,7 +5,7 @@ import { EventType } from '../types/event-type';
 import { Notification } from '../types/notification';
 
 // Filter notifications by eventType for a given account
-export async function filterAccountNotifications (
+export async function filterAccountNotifications(
   account: string,
   notifications: Notification[],
   limit?: number,

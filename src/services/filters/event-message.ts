@@ -4,7 +4,7 @@ import { EventType, mapEventType } from '../types/event-type';
 import { Notification } from '../types/notification';
 
 // Fill event message based on event type
-export async function filterEventMessage (
+export async function filterEventMessage(
   notifications: Notification[],
 ): Promise<Notification[]> {
   const filteredNotifications = [];

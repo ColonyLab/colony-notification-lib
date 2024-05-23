@@ -66,7 +66,7 @@ export default class EarlyStageService {
   // maxAllocation is better than allocation, because it is not decreased after the investment.
   //
   // @returns {boolean} - The function returns true if the maxAllocation is greater than 0
-  static async isAccountInvolved (projectNest: string, account: string): Promise<boolean> {
+  static async isAccountInvolved(projectNest: string, account: string): Promise<boolean> {
     if (memCache.accountInvolved.has(projectNest + account)) {
       return memCache.accountInvolved.get(projectNest + account)!;
     }
@@ -84,7 +84,7 @@ export default class EarlyStageService {
     return involved;
   }
 
-  static async accountAllocation (projectNest: string, account: string): Promise<bigint> {
+  static async accountAllocation(projectNest: string, account: string): Promise<bigint> {
     if (memCache.accountAllocation.has(projectNest + account)) {
       return memCache.accountAllocation.get(projectNest + account)!;
     }
@@ -101,7 +101,7 @@ export default class EarlyStageService {
     return allocation;
   }
 
-  static async accountInvestment (projectNest: string, account: string): Promise<bigint> {
+  static async accountInvestment(projectNest: string, account: string): Promise<bigint> {
     if (memCache.accountInvestment.has(projectNest + account)) {
       return memCache.accountInvestment.get(projectNest + account)!;
     }

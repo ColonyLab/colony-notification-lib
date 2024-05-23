@@ -4,6 +4,7 @@ import { Notification } from './types/notification';
 
 import { filterAccountNotifications } from './filters/account-notifiactions';
 
+/// Notifications focused on a specific account
 export default class NotificationService {
   generalNotifications: GeneralNotifications;
 
@@ -29,7 +30,7 @@ export default class NotificationService {
 
   // Get the last "youngest" notifications for a given account
   // @dev Saves the oldest notification timestamp for the next call
-  public async getAccountLastNotifications (account: string, limit: number): Promise<Notification[]> {
+  public async getAccountLastNotifications(account: string, limit: number): Promise<Notification[]> {
     // get timestamp from memory (oldest notification timestamp in this sesion)
     let timestamp = this.accountLastNotificationsTimestamp.get(account);
     if (!timestamp) {
@@ -55,11 +56,11 @@ export default class NotificationService {
     return notifications;
   }
 
-  public resetAccountLastNotifications (account: string) {
+  public resetAccountLastNotifications(account: string) {
     this.accountLastNotificationsTimestamp.delete(account);
   }
 
-  public async syncAccountNotifications (account: string): Promise<boolean> {
+  public async syncAccountNotifications(account: string): Promise<boolean> {
     const now = Math.floor(Date.now() / 1000);
     const result = await this.generalNotifications.syncNotifications();
     if (result === false) {
@@ -80,7 +81,7 @@ export default class NotificationService {
   }
 
   /// Set notification timestamp to current time which is used to fetch new notifications
-  public setNotificationTimestamp (account: string) {
+  public setNotificationTimestamp(account: string) {
     // use current timestamp
     const timestamp = Math.floor(Date.now() / 1000);
 

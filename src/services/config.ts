@@ -30,19 +30,19 @@ let config = defaultConfig;
 export default class Config {
 
   // set env, optional overwrite default config values
-  public static setupConfig (custom?: ConfigValues) {
+  public static setupConfig(custom?: ConfigValues) {
     if (custom) {
       config = custom;
     }
   }
 
   // eslint-disable-next-line
-  public static getConfig (name: string): any {
+  public static getConfig(name: string): any {
     // @ts-ignore-next-line
     return config[name];
   }
 
-  public static getNetwork (): Network {
+  public static getNetwork(): Network {
     return Config.getConfig('NETWORK') as Network;
   }
 

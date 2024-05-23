@@ -94,13 +94,13 @@ export default class GeneralNotifications {
   }
 
   // Gets notifications from the memory cache - since the given timestamp
-  public getNotificationsSince (since: number): Notification[] {
+  public getNotificationsSince(since: number): Notification[] {
     const now = Math.floor(Date.now() / 1000);
     return this.getNotifications(since, now);
   }
 
   // Gets notifications from the memory cache - to the given timestamp
-  public getNotificationsTo (to: number): Notification[] {
+  public getNotificationsTo(to: number): Notification[] {
     return this.getNotifications(dateLimit, to);
   }
 
@@ -110,7 +110,7 @@ export default class GeneralNotifications {
   }
 
   // true if there are new notifications
-  public async syncNotifications (): Promise<boolean> {
+  public async syncNotifications(): Promise<boolean> {
     const raw = await this.fetchNewRawNotifications();
     if (raw.length === 0) {
       return false;

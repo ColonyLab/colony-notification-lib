@@ -30,7 +30,7 @@ module.exports = {
     "space-before-function-paren": [
       "error", {
         "anonymous": "always",
-        "named": "ignore",
+        "named": "never",
         "asyncArrow": "always",
       },
     ],

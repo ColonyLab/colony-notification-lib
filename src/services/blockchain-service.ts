@@ -22,7 +22,7 @@ const contractArtifacts: ArtifactsMap = {
 
 
 export default class BlockchainService {
-  public static getContractAddress (contractName: string): string {
+  public static getContractAddress(contractName: string): string {
     if (contractName === 'EarlyStageManager') {
       return Config.getEarlyStageManagerAddress();
     } else {
