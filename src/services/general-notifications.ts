@@ -36,7 +36,7 @@ export default class GeneralNotifications {
 
       return notifications;
     } catch (error) {
-      console.error("Failed to filter notifications:", error);
+      console.warn("Failed to filter notifications:", error);
       return [];
     }
   }
@@ -77,7 +77,7 @@ export default class GeneralNotifications {
       return data.notifications;
 
     } catch (error) {
-      console.error("Failed to fetch notifications:", error);
+      console.warn("Failed to fetch notifications:", error);
       return [];
     }
   }
