@@ -3,6 +3,7 @@ import GeneralNotifications, { dateLimit } from './general-notifications';
 import { Notification } from './types/notification';
 
 import { filterAccountNotifications } from './filters/account-notifiactions';
+import { filterSeenNotifications } from './filters/seen-notifications';
 
 /// Notifications focused on a specific account
 export default class NotificationService {
@@ -12,6 +13,8 @@ export default class NotificationService {
 
   // map: oldest notification loaded for this account
   accountLastNotificationsTimestamp: Map<string, number> = new Map();
+
+  unseenNotifications: number = 0;
 
   private constructor(){}
 
@@ -26,6 +29,14 @@ export default class NotificationService {
     await instance.init();
 
     return instance;
+  }
+
+  public async initAccount(account: string) {
+    this.unseenNotifications = await filterSeenNotifications(account);
+  }
+
+  get unseenNotificationsCount(): number {
+    return this.unseenNotifications;
   }
 
   // Get the last "youngest" notifications for a given account
@@ -54,6 +65,11 @@ export default class NotificationService {
       notifications[notifications.length - 1].timestamp - 1,
     );
 
+    LocalStorage.addNotificationTimestamps(
+      account,
+      notifications.map((n) => n.timestamp),
+    );
+
     return notifications;
   }
 
@@ -79,14 +95,5 @@ export default class NotificationService {
     this.lastSyncTimestamp = now;
 
     return true;
-  }
-
-  /// Set notification timestamp to current time which is used to fetch new notifications
-  public setNotificationTimestamp(account: string) {
-    // use current timestamp
-    const timestamp = Math.floor(Date.now() / 1000);
-
-    // set timestamp to local storage
-    LocalStorage.setNotificationTimestamp(account, timestamp);
   }
 }

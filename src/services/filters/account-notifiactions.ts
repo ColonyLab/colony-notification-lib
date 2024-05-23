@@ -11,6 +11,7 @@ export async function filterAccountNotifications(
   notifications: Notification[],
   limit?: number,
 ): Promise<Notification[]> {
+  const now = Date.now();
   const accountNotifications = [];
 
   // Helper function to check if account is involved
@@ -112,11 +113,18 @@ export async function filterAccountNotifications(
       }
   }
 
+  const presentTimestamps = LocalStorage.hasNotificationTimestamps(
+    account,
+    accountNotifications.map(n => n.timestamp),
+  );
+
   // determine "new" notifications
-  const timestamp = LocalStorage.getNotificationTimestamp(account);
   for (const notification of accountNotifications) {
-    notification.new = notification.timestamp > timestamp;
+    notification.new = !presentTimestamps[notification.timestamp];
   }
+
+  const timePassed = Date.now() - now;
+  console.log(`Processed ${notifications.length} notifications for account in ${timePassed / 1000} seconds`); // dbg
 
   return accountNotifications;
 }

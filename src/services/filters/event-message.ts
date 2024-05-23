@@ -8,6 +8,7 @@ import { Phase } from '../types/project-phase';
 export async function filterEventMessage(
   notifications: Notification[],
 ): Promise<Notification[]> {
+  const now = Date.now();
   const filteredNotifications = [];
 
   // Helper function to push countdown set notification
@@ -110,6 +111,9 @@ export async function filterEventMessage(
   for (const notification of filteredNotifications) {
     delete notification.content;
   }
+
+  const timePassed = Date.now() - now;
+  console.log(`Processed ${notifications.length} notifications messages in ${timePassed / 1000} seconds`); // dbg
 
   return filteredNotifications;
 }

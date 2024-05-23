@@ -15,7 +15,7 @@ export function filterProjectsNames(notifications: Notification[]): Notification
         notification.eventType === EventType.CustomNotification &&
         notification.projectNest === constants.AddressZero
       ) {
-        notification.projectName = undefined;
+        notification.projectName = "GLOBAL";
         return true;
       }
 

@@ -1,3 +1,5 @@
+type TimestampsPresence = { [key: number]: boolean };
+
 export default class LocalStorage {
   static getItem(key: string) {
     const item = localStorage.getItem(key);
@@ -14,21 +16,26 @@ export default class LocalStorage {
     localStorage.removeItem(key);
   }
 
-  // Notifications
-
-  static getNotificationTimestamp(account: string): number {
+  static addNotificationTimestamps(account: string, timestamps: number[]) {
     const key = `notifications-${account}`;
-    const timestamp = LocalStorage.getItem(key);
-    return timestamp || 0;
+    const storedTimestamps = LocalStorage.getItem(key) || [];
+
+    // Use Set to prevent duplicates
+    const timestampSet = new Set([...storedTimestamps, ...timestamps]);
+    LocalStorage.setItem(key, Array.from(timestampSet));
   }
 
-  static setNotificationTimestamp(account: string, timestamp: number) {
+  static hasNotificationTimestamps(account: string, timestamps: number[]): TimestampsPresence {
     const key = `notifications-${account}`;
-    LocalStorage.setItem(key, timestamp);
-  }
+    const storedTimestamps = LocalStorage.getItem(key) || [];
+    const timestampSet = new Set(storedTimestamps);
 
-  static clearNotificationTimestamp(account: string) {
-    const key = `notifications-${account}`;
-    LocalStorage.removeItem(key);
+    // Use Set for optimized lookups
+    const result: { [key: number]: boolean } = {};
+    timestamps.forEach(timestamp => {
+      result[timestamp] = timestampSet.has(timestamp);
+    });
+
+    return result;
   }
 }

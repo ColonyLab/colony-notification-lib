@@ -78,22 +78,6 @@ Check for if there are any new general notifications.
 const result = await generalNotifications.syncNotifications(); // true/false
 ```
 
-### LocalStorage
-
-Allows to have more control over the notifications timestamps:
-```javascript
-import { LocalStorage } from '@colony/colony-notification-lib/lib';
-
-// get notification timestamp
-const timestamp = LocalStorage.getNotificationTimestamp(account);
-
-// set notification timestamp
-LocalStorage.setNotificationTimestamp(account, timestamp);
-
-// clear notification timestamp
-LocalStorage.clear(account);
-```
-
 ### Early Stage Service
 
 Early Stage service provide convinient static methods to interact with Early Stage Manager and its Project Nests:
