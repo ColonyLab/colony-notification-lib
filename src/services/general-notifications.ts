@@ -27,22 +27,28 @@ export default class GeneralNotifications {
   }
 
   private async filterRawNotifications(notifications: Notification[]): Promise<Notification[]> {
-    const projects = Array.from(new Set(notifications.map(n => n.projectNest))); // unique projects
-    await this.earlyStageService.fetchProjectNames(projects); // fetch project names
+    try {
+      const projects = Array.from(new Set(notifications.map(n => n.projectNest))); // unique projects
+      await this.earlyStageService.fetchProjectNames(projects); // fetch project names
 
-    notifications = await filterEventMessage(await notifications);
-    notifications = await filterProjectsNames(await notifications);
+      notifications = await filterEventMessage(await notifications);
+      notifications = await filterProjectsNames(await notifications);
 
-    return notifications;
+      return notifications;
+    } catch (error) {
+      console.error("Failed to filter notifications:", error);
+      return [];
+    }
   }
 
   private async init(): Promise<void> {
     const from = dateLimit;
     const to = Math.floor(Date.now() / 1000);
-    const raw = await this.fetchRawNotifications(from, to);
 
-    this.notificationsCache = await this.filterRawNotifications(raw);
-    this.lastSyncTimestamp = to;
+      const raw = await this.fetchRawNotifications(from, to);
+
+      this.notificationsCache = await this.filterRawNotifications(raw);
+      this.lastSyncTimestamp = to;
   }
 
   // Factory method to create an instance of GeneralNotifications
@@ -57,17 +63,23 @@ export default class GeneralNotifications {
   private async fetchRawNotifications(from: number, to: number): Promise<Notification[]> {
     console.log("Fetching notifications from:", from, "to:", to);
 
-    const data = await this.graphClient.request<
-      FetchNotificationsResult
-    >
-    (FETCH_NOTIFICATIONS_QUERY, {
-      from,
-      to,
-    }) as FetchNotificationsResult;
+    try {
+      const data = await this.graphClient.request<
+        FetchNotificationsResult
+      >
+      (FETCH_NOTIFICATIONS_QUERY, {
+        from,
+        to,
+      }) as FetchNotificationsResult;
 
-    console.log("Notifications fetched:", data.notifications.length);
+      console.log("Notifications fetched:", data.notifications.length);
 
-    return data.notifications;
+      return data.notifications;
+
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      return [];
+    }
   }
 
   private async fetchNewRawNotifications(): Promise<Notification[]> {

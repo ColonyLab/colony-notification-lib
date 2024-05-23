@@ -26,6 +26,10 @@ export default class EarlyStageService {
 
   // Fetch names from the subgraph
   async fetchProjectNames(projects: string[]): Promise<void> {
+    if (projects.length === 0) {
+      return;
+    }
+
     console.log("Fetching projects names for:", projects.length, "projects");
 
     const data = await this.graphClient.request<
