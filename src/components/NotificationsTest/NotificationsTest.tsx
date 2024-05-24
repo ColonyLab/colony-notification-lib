@@ -61,7 +61,7 @@ export function NotificationsTest(): ReactElement {
   const isAccountInvolved = async () => {
     log(`EarlyStageService: Account ${account} involved in nest ${projectNest}?`);
 
-    const involved = await EarlyStageService.isAccountInvolved(projectNest, account);
+    const involved = EarlyStageService.isAccountInvolved(projectNest, account);
     console.log("is account involved:", involved);
     log(involved.toString());
   };

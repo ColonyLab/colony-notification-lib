@@ -18,7 +18,7 @@ export async function filterAccountNotifications(
   const accountNotifications = [];
 
   // Helper function to check if account is involved
-  const involved = async (notification: Notification): Promise<boolean> => {
+  const involved = (notification: Notification): boolean => {
     return EarlyStageService.isAccountInvolved(
       notification.projectNest,
       account,
@@ -34,7 +34,7 @@ export async function filterAccountNotifications(
       return;
     }
 
-    if (await involved(notification)) {
+    if (involved(notification)) {
       accountNotifications.push(notification);
     }
   };
@@ -63,7 +63,7 @@ export async function filterAccountNotifications(
             break;
           }
 
-          if (await involved(notification)) {
+          if (involved(notification)) {
             accountNotifications.push(notification);
           }
           break;
@@ -77,7 +77,7 @@ export async function filterAccountNotifications(
           break;
 
         default:
-          if (await involved(notification)) {
+          if (involved(notification)) {
             accountNotifications.push(notification);
           }
       }

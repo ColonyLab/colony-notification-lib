@@ -1,6 +1,6 @@
 {
   "name": "@colony/colony-notification-lib",
-  "version": "v0.12",
+  "version": "v0.15",
   "main": "/lib/index.js",
   "types": "/lib/index.d.ts",
   "dependencies": {
@@ -44,7 +44,7 @@
   },
   "peerDependencies": {
     "ethers": "^5.7.0",
-    "graphql-request": "^6.1.0"
+    "graphql-request": "^4.3.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.5",

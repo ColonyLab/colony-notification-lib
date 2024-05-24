@@ -73,7 +73,7 @@ export default class EarlyStageService {
 
   // Checks if the account was involved in ProjectNest by using the maxValue.
   // @returns {boolean} - The function returns true if the maxValue in given Nest is greater than 0
-  static async isAccountInvolved(projectNest: string, account: string): Promise<boolean> {
+  static isAccountInvolved(projectNest: string, account: string): boolean {
     if (memCache.accountInvolved.has(projectNest + account)) {
       return memCache.accountInvolved.get(projectNest + account)!;
     }
