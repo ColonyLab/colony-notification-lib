@@ -11,6 +11,10 @@ export async function filterAccountNotifications(
   notifications: Notification[],
   limit?: number,
 ): Promise<Notification[]> {
+  if (!notifications || notifications.length === 0) {
+    return [];
+  }
+
   const now = Date.now();
   const accountNotifications = [];
 
@@ -120,11 +124,12 @@ export async function filterAccountNotifications(
 
   // determine "new" notifications
   for (const notification of accountNotifications) {
+    // console.log("setting new:", notification.timestamp, !presentTimestamps[notification.timestamp]); // dbg
     notification.new = !presentTimestamps[notification.timestamp];
   }
 
   const timePassed = Date.now() - now;
-  console.log(`Processed ${notifications.length} notifications for account in ${timePassed / 1000} seconds`); // dbg
+  console.log(`Processed ${notifications.length} notifications for account in ${timePassed / 1000} seconds (limit: ${limit})`); // dbg
 
   return accountNotifications;
 }

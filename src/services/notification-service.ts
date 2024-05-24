@@ -1,26 +1,17 @@
-import LocalStorage from './local-storage';
-import GeneralNotifications, { dateLimit } from './general-notifications';
+import GeneralNotifications from './general-notifications';
+import AccountNotifications from './account-notifications';
 import { Notification } from './types/notification';
 
-import { filterAccountNotifications } from './filters/account-notifiactions';
-import { filterSeenNotifications } from './filters/seen-notifications';
-
-/// Notifications focused on a specific account
+/// Notification Service
 export default class NotificationService {
-  generalNotifications: GeneralNotifications;
+  private generalNotifications: GeneralNotifications;
 
-  lastSyncTimestamp: number = 0;
-
-  // map: oldest notification loaded for this account
-  accountLastNotificationsTimestamp: Map<string, number> = new Map();
-
-  unseenNotifications: number = 0;
+  private accounts: Map<string, AccountNotifications> = new Map();
 
   private constructor(){}
 
   private async init(): Promise<void> {
     this.generalNotifications = await GeneralNotifications.createInstance();
-    this.lastSyncTimestamp = Math.floor(Date.now() / 1000);
   }
 
   // Factory method to create an instance of NotificationService
@@ -31,69 +22,76 @@ export default class NotificationService {
     return instance;
   }
 
-  public async initAccount(account: string) {
-    this.unseenNotifications = await filterSeenNotifications(account);
-  }
-
-  get unseenNotificationsCount(): number {
-    return this.unseenNotifications;
-  }
-
-  // Get the last "youngest" notifications for a given account
-  // @dev Saves the oldest notification timestamp for the next call
-  public async getAccountLastNotifications(account: string, limit: number): Promise<Notification[]> {
-    // get timestamp from memory (oldest notification timestamp in this sesion)
-    let timestamp = this.accountLastNotificationsTimestamp.get(account);
-    if (!timestamp) {
-      timestamp = Math.floor(Date.now() / 1000); // use now
+  public async initAccount(account: string): Promise<void> {
+    const accountNotifications = this.accounts.get(account);
+    if (accountNotifications !== undefined) {
+      throw new Error('Account already initialized');
     }
 
-    const notifications = await filterAccountNotifications(
+    await this.accounts.set(account, await AccountNotifications.createInstance(
       account,
-      await this.generalNotifications.getNotificationsTo(timestamp),
-      limit,
-    );
-
-    if (notifications.length === 0) {
-      this.accountLastNotificationsTimestamp.set(account, dateLimit);
-      return [];
-    }
-
-    // -1 becouse last notification was already loaded
-    this.accountLastNotificationsTimestamp.set(
-      account,
-      notifications[notifications.length - 1].timestamp - 1,
-    );
-
-    LocalStorage.addNotificationTimestamps(
-      account,
-      notifications.map((n) => n.timestamp),
-    );
-
-    return notifications;
+      this.generalNotifications.getAllNotifications(),
+    ));
   }
 
-  public resetAccountLastNotifications(account: string) {
-    this.accountLastNotificationsTimestamp.delete(account);
+  public unseenNotifications(account: string): number {
+    const accountNotifications = this.accounts.get(account);
+    if (!accountNotifications) {
+      throw new Error('Account not initialized');
+    }
+
+    return accountNotifications.unseenNotifications;
+  }
+
+  // Simplified pagination
+  // @dev Get the next "youngest" notifications. Saves timestamp for the next call
+  public getNextNotifications(account: string, limit: number): Notification[] {
+    const accountNotifications = this.accounts.get(account);
+    if (!accountNotifications) {
+      throw new Error('Account not initialized');
+    }
+
+    const next = accountNotifications.getNextNotifications(limit)
+      .map((n) => structuredClone(n)); // make a deep copy
+
+    // mark original account notifications as read
+    for (const n of accountNotifications.notifications) {
+      if (next.map((nn) => nn.id).includes(n.id)) {
+        n.new = false;
+      }
+    }
+
+    return next;
+  }
+
+  // Reset the next notifications to the beginning
+  public resetNextNotifications(account: string): void {
+    const accountNotifications = this.accounts.get(account);
+    if (!accountNotifications) {
+      throw new Error('Account not initialized');
+    }
+
+    accountNotifications.resetNextNotifications();
   }
 
   public async syncAccountNotifications(account: string): Promise<boolean> {
+    const accountNotifications = this.accounts.get(account);
+    if (!accountNotifications) {
+      throw new Error('Account not initialized');
+    }
+
     const now = Math.floor(Date.now() / 1000);
     const result = await this.generalNotifications.syncNotifications();
     if (result === false) {
       return false;
     }
 
-    const notifications = this.generalNotifications.getNotifications(this.lastSyncTimestamp, now);
-    const accountNotifications = await filterAccountNotifications(account, notifications);
+    // get all notifications from the last general sync
+    const notifications = this.generalNotifications.getNotifications(
+      accountNotifications.lastSyncTimestamp,
+      now,
+    );
 
-    if (accountNotifications.length === 0) {
-      return false;
-    }
-
-    // update lastSyncTimestamp
-    this.lastSyncTimestamp = now;
-
-    return true;
+    return accountNotifications.syncNotifications(notifications);
   }
 }

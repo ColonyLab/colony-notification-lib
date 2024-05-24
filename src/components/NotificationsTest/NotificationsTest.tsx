@@ -18,9 +18,6 @@ Config.setupConfig({
   EARLYSTAGE_MANAGER_CONTRACT: "0x425C95aB13d2caae4C38c86575fc3EF5Ad7cED4f",
 });
 
-const generalNotifiactionsPromise = GeneralNotifications.createInstance();
-const notificationServicePromise = NotificationService.createInstance();
-
 export function NotificationsTest(): ReactElement {
 
   // const projectNest = "0x24727f6306dac64e1688093c5fec78c5c5668a34";
@@ -35,15 +32,34 @@ export function NotificationsTest(): ReactElement {
   const [timestamp, setTimestamp] = useState(oldTimestamp);
   const [limit, setLimit] = useState(2);
 
+  const [notificationService, setNotificationService] = useState<NotificationService | null>(null);
+  const [generalNotifications, setGeneralNotifications] = useState<GeneralNotifications | null>(null);
+
+  useEffect(() => {
+    const initializeServices = async () => {
+      try {
+        const generalNotifications = await GeneralNotifications.createInstance();
+        const notificationService = await NotificationService.createInstance();
+
+        setGeneralNotifications(generalNotifications);
+        setNotificationService(notificationService);
+        log("Services initialized");
+      } catch (error) {
+        console.error("Error initializing services:", error);
+      }
+    };
+
+    initializeServices();
+  }, []);
 
   const allNotifications = async () => {
     log(`Getting all notifications for timestamp ${timestamp}`);
-    const generalNotifiactions = await generalNotifiactionsPromise;
-    const notifications = await generalNotifiactions.getNotificationsSince(timestamp);
+    const notifications = await generalNotifications.getNotificationsSince(timestamp);
     console.log("all notifications:", notifications);
     log(JSON.stringify(notifications, null, 2));
   };
 
+  // TODO remove
   const projectExist = async () => {
     log(`EarlyStageService: project: ${projectNest} exist?`);
 
@@ -52,6 +68,7 @@ export function NotificationsTest(): ReactElement {
     log(exist.toString());
   };
 
+  // TODO graph
   const isAccountInvolved = async () => {
     log(`EarlyStageService: Account ${account} involved in nest ${projectNest}?`);
 
@@ -60,6 +77,7 @@ export function NotificationsTest(): ReactElement {
     log(involved.toString());
   };
 
+  // TODO graph
   const accountAllocation = async () => {
     log(`EarlyStageService: Account ${account} allocation in nest ${projectNest}?`);
 
@@ -68,45 +86,61 @@ export function NotificationsTest(): ReactElement {
     log(allocation.toString());
   };
 
-  const accountLastNotifications = async () => {
-    log(`Getting account last ${limit} notifications for account ${account}`);
+  const initAccount = async () => {
+    try {
+      log(`Initializing account ${account}`);
 
-    const notificationService = await notificationServicePromise;
-    const notifications = await notificationService.getAccountLastNotifications(account, limit);
-    log(JSON.stringify(notifications, null, 2));
+      await notificationService.initAccount(account);
+
+      log("Account initialized");
+    } catch (error) {
+      log(`Caught error: ${error.message}`);
+    }
   };
 
-  const accountResetLastNotifications = async () => {
-    log(`Resetting account ${account} last notifications`);
+  const accountNextNotifications = async () => {
+    try {
+      log(`Getting ${limit} next notifications for account ${account}`);
 
-    const notificationService = await notificationServicePromise;
-    await notificationService.resetAccountLastNotifications(account);
-    log("Account last notifications reset");
+      const notifications = await notificationService.getNextNotifications(account, limit);
+      log(JSON.stringify(notifications, null, 2));
+    } catch (error) {
+      log(`Caught error: ${error.message}`);
+    }
   };
 
-  const setNotificationTimestamp = async () => {
-    const now = Math.floor(Date.now() / 1000);
-    log(`Setting notification timestamp to ${now} for account ${account}`);
+  const accountResetNextNotifications = async () => {
+    try {
+      log(`Resetting account ${account} next notifications`);
 
-    const notificationService = await notificationServicePromise;
-    await notificationService.setNotificationTimestamp(account);
-    log(`Notification timestamp set to: ${now} for account ${account}`);
+      await notificationService.resetNextNotifications(account);
+      log("Account last notifications reset");
+    } catch (error) {
+      log(`Caught error: ${error.message}`);
+    }
   };
 
-  const clearNotifiactionTimestamp = async () => {
-    log(`Clearing notification timestamp for account ${account}`);
+  const unseenNotifications = async () => {
+    try {
+      log(`Getting unseenNotifications ${account} notifications count`);
 
-    await LocalStorage.clearNotificationTimestamp(account);
-    log(`Notification timestamp cleared for account ${account}`);
+      const count = await notificationService.unseenNotifications(account);
+      log(`Unseen: ${count.toString()}`);
+    } catch (error) {
+      log(`Caught error: ${error.message}`);
+    }
   };
 
   const syncAccountNotifications = async () => {
-    log(`Syncing notifications for account ${account}`);
+    try {
+      log(`Syncing notifications for account ${account}`);
 
-    const notificationService = await notificationServicePromise;
-    const result = await notificationService.syncAccountNotifications(account);
-    console.log("account sync:", result);
-    log(result.toString());
+      const result = await notificationService.syncAccountNotifications(account);
+      console.log("account sync:", result);
+      log(result.toString());
+    } catch (error) {
+      log(`Caught error: ${error.message}`);
+    }
   };
 
   // -- Console log messages --
@@ -151,7 +185,6 @@ export function NotificationsTest(): ReactElement {
           </label>
         </div>
 
-
         <div className="form-group">
           <label className="label">
             Account
@@ -180,6 +213,15 @@ export function NotificationsTest(): ReactElement {
         <div className="button-group">
           <button
             className="button"
+            onClick={initAccount}
+          >
+            Initialize Account
+          </button>
+        </div>
+
+        <div className="button-group">
+          <button
+            className="button"
             onClick={projectExist}
           >
             ProjectExist
@@ -200,7 +242,7 @@ export function NotificationsTest(): ReactElement {
             className="button"
             onClick={isAccountInvolved}
           >
-            Is Account Involved
+            Is Involved
           </button>
         </div>
         <div className="button-group">
@@ -208,43 +250,34 @@ export function NotificationsTest(): ReactElement {
             className="button"
             onClick={accountAllocation}
           >
-            Account Allocation
+            Allocation
           </button>
         </div>
 
         <div className="button-group">
           <button
             className="button"
-            onClick={() => accountLastNotifications()}
+            onClick={() => accountNextNotifications()}
           >
-            Account LastNotifications
+            Next Notifications
           </button>
         </div>
 
         <div className="button-group">
           <button
             className="button"
-            onClick={accountResetLastNotifications}
+            onClick={accountResetNextNotifications}
           >
-            Reset Account LastNotifications
+            Reset Next Notifications
           </button>
         </div>
 
         <div className="button-group">
           <button
             className="button"
-            onClick={setNotificationTimestamp}
+            onClick={unseenNotifications}
           >
-            Set Notification Timestamp
-          </button>
-        </div>
-
-        <div className="button-group">
-          <button
-            className="button"
-            onClick={clearNotifiactionTimestamp}
-          >
-            Clear Notification Timestamp
+            Unseen Notifications
           </button>
         </div>
 

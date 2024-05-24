@@ -11,12 +11,12 @@ export const dateLimit = Date.UTC(2024,1,1) / 1000; // 1 Jan 2024
 
 /// Fetches and handles notifications not related to a specific account
 export default class GeneralNotifications {
-  graphClient: GraphQLClient;
-  earlyStageService: EarlyStageService;
+  private graphClient: GraphQLClient;
+  private earlyStageService: EarlyStageService;
 
   // notifications cache
-  notificationsCache: Notification[] = [];
-  lastSyncTimestamp: number = 0;
+  private notificationsCache: Notification[] = [];
+  private lastSyncTimestamp: number = 0;
 
   private constructor(){
     this.graphClient = new GraphQLClient(Config.getConfig(
@@ -28,7 +28,8 @@ export default class GeneralNotifications {
 
   private async filterRawNotifications(notifications: Notification[]): Promise<Notification[]> {
     try {
-      const projects = Array.from(new Set(notifications.map(n => n.projectNest))); // unique projects
+      // unique projects
+      const projects = Array.from(new Set(notifications.map(n => n.projectNest)));
       await this.earlyStageService.fetchProjectNames(projects); // fetch project names
 
       notifications = await filterEventMessage(await notifications);
@@ -61,7 +62,7 @@ export default class GeneralNotifications {
 
   // Fetch notifications from the subgraph
   private async fetchRawNotifications(from: number, to: number): Promise<Notification[]> {
-    console.log("Fetching notifications from:", from, "to:", to);
+    // console.log("Fetching notifications from:", from, "to:", to);
 
     try {
       const data = await this.graphClient.request<
@@ -71,8 +72,6 @@ export default class GeneralNotifications {
         from,
         to,
       }) as FetchNotificationsResult;
-
-      console.log("Notifications fetched:", data.notifications.length);
 
       return data.notifications;
 
@@ -85,7 +84,7 @@ export default class GeneralNotifications {
   private async fetchNewRawNotifications(): Promise<Notification[]> {
     const to = Math.floor(Date.now() / 1000);
 
-    console.log("Fetching new notifications from:", this.lastSyncTimestamp, "to:", to.toString());
+    // console.log("Fetching new notifications from:", this.lastSyncTimestamp, "to:", to.toString());
     return this.fetchRawNotifications(this.lastSyncTimestamp, to);
   }
 
@@ -94,15 +93,9 @@ export default class GeneralNotifications {
     if (from === to || from > to)
       return [];
 
-    const notifications: Notification[] = [];
-
-    for (const notification of this.notificationsCache) {
-      if (notification.timestamp > from && notification.timestamp <= to) {
-        notifications.push(notification);
-      }
-    }
-
-    return notifications;
+    return this.notificationsCache.filter(n =>
+      n.timestamp > from && n.timestamp <= to,
+    );
   }
 
   // Gets notifications from the memory cache - since the given timestamp

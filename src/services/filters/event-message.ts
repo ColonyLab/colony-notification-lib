@@ -74,10 +74,10 @@ export async function filterEventMessage(
   };
 
   for (const notification of notifications) {
-    console.log(
-      "Processing notification message:", notification.eventType,
-      ", for project:", notification.projectNest,
-    ); // dbg
+    // console.log(
+    //   "Processing notification message:", notification.eventType,
+    //   ", for project:", notification.projectNest,
+    // ); // dbg
 
     switch (notification.eventType) {
         // add token symbol to the event message from additionalData

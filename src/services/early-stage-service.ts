@@ -30,7 +30,7 @@ export default class EarlyStageService {
       return;
     }
 
-    console.log("Fetching projects names for:", projects.length, "projects");
+    // console.log("Fetching projects names for:", projects.length, "projects");
 
     const data = await this.graphClient.request<
       FetchProjectsNames
@@ -38,8 +38,6 @@ export default class EarlyStageService {
     (FETCH_PROJECTS_NAMES_QUERY, {
       projects,
     }) as FetchProjectsNames;
-
-    console.log("Names fetched:", data.projects.length);
 
     for (const project of data.projects) {
       memCache.projectName.set(project.id, project.name);
