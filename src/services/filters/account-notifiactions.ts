@@ -15,7 +15,6 @@ export async function filterAccountNotifications(
     return [];
   }
 
-  const now = Date.now();
   const accountNotifications = [];
 
   // Helper function to check if account is involved
@@ -24,24 +23,6 @@ export async function filterAccountNotifications(
       notification.projectNest,
       account,
     );
-  };
-
-  // Helper function to check if account has allocation
-  const hasAllocation = async (notification: Notification): Promise<boolean> => {
-    const allocation = await EarlyStageService.accountAllocation(
-      notification.projectNest,
-      account,
-    );
-    return allocation > 0;
-  };
-
-  // Helper function to check if account has overinvestment
-  const hasOverinvestment = async (notification: Notification): Promise<boolean> => {
-    const overinvestment = await EarlyStageService.accountOverinvestment(
-      notification.projectNest,
-      account,
-    );
-    return overinvestment > 0;
   };
 
   // Helper function to push custom notification
@@ -63,31 +44,16 @@ export async function filterAccountNotifications(
       break;
     }
 
-    console.log(
-      "Processing account notification:", notification.eventType,
-      ", for project:", notification.projectNest,
-      ", and account:", account,
-    ); // dbg
+    // console.log(
+    //   "Processing account notification:", notification.eventType,
+    //   ", for project:", notification.projectNest,
+    //   ", and account:", account,
+    // ); // dbg
 
     switch (notification.eventType) {
         case EventType.NewProjectOnDealFlow:
         case EventType.NestIsOpen:
           accountNotifications.push(notification);
-          break;
-
-        // additional check if account has any allocation in the project
-        case EventType.MovedToAnalysis: {
-          if (await hasAllocation(notification)) {
-            accountNotifications.push(notification);
-          }
-          break;
-        }
-
-        // additional check if account has overinvestment to claim in the project
-        case EventType.ClaimUsdcExcess:
-          if (await hasOverinvestment(notification)) {
-            accountNotifications.push(notification);
-          }
           break;
 
         case EventType.CountdownSet:
@@ -124,12 +90,8 @@ export async function filterAccountNotifications(
 
   // determine "new" notifications
   for (const notification of accountNotifications) {
-    // console.log("setting new:", notification.timestamp, !presentTimestamps[notification.timestamp]); // dbg
     notification.new = !presentTimestamps[notification.timestamp];
   }
-
-  const timePassed = Date.now() - now;
-  console.log(`Processed ${notifications.length} notifications for account in ${timePassed / 1000} seconds (limit: ${limit})`); // dbg
 
   return accountNotifications;
 }

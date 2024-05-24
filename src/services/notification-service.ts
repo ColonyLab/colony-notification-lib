@@ -22,34 +22,31 @@ export default class NotificationService {
     return instance;
   }
 
-  public async initAccount(account: string): Promise<void> {
-    const accountNotifications = this.accounts.get(account);
-    if (accountNotifications !== undefined) {
-      throw new Error('Account already initialized');
+  private async updateAccount(account: string): Promise<AccountNotifications> {
+    let accountNotifications = this.accounts.get(account);
+    if (accountNotifications) {
+      return accountNotifications;
     }
 
-    await this.accounts.set(account, await AccountNotifications.createInstance(
+    accountNotifications = await AccountNotifications.createInstance(
       account,
       this.generalNotifications.getAllNotifications(),
-    ));
+    );
+
+    await this.accounts.set(account, accountNotifications);
+    return accountNotifications;
   }
 
-  public unseenNotifications(account: string): number {
-    const accountNotifications = this.accounts.get(account);
-    if (!accountNotifications) {
-      throw new Error('Account not initialized');
-    }
+  public async unseenNotifications(account: string): Promise<number> {
+    const accountNotifications = await this.updateAccount(account);
 
     return accountNotifications.unseenNotifications;
   }
 
   // Simplified pagination
   // @dev Get the next "youngest" notifications. Saves timestamp for the next call
-  public getNextNotifications(account: string, limit: number): Notification[] {
-    const accountNotifications = this.accounts.get(account);
-    if (!accountNotifications) {
-      throw new Error('Account not initialized');
-    }
+  public async getNextNotifications(account: string, limit: number): Promise<Notification[]> {
+    const accountNotifications = await this.updateAccount(account);
 
     const next = accountNotifications.getNextNotifications(limit)
       .map((n) => structuredClone(n)); // make a deep copy
@@ -65,20 +62,14 @@ export default class NotificationService {
   }
 
   // Reset the next notifications to the beginning
-  public resetNextNotifications(account: string): void {
-    const accountNotifications = this.accounts.get(account);
-    if (!accountNotifications) {
-      throw new Error('Account not initialized');
-    }
+  public async resetNextNotifications(account: string): Promise<void> {
+    const accountNotifications = await this.updateAccount(account);
 
     accountNotifications.resetNextNotifications();
   }
 
   public async syncAccountNotifications(account: string): Promise<boolean> {
-    const accountNotifications = this.accounts.get(account);
-    if (!accountNotifications) {
-      throw new Error('Account not initialized');
-    }
+    const accountNotifications = await this.updateAccount(account);
 
     const now = Math.floor(Date.now() / 1000);
     const result = await this.generalNotifications.syncNotifications();

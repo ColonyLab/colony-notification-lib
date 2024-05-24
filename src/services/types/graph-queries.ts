@@ -25,6 +25,33 @@ export interface FetchNotificationsResult {
 
 // ------------------------------
 
+export interface AntAllocation {
+  project: {
+    id: string
+  }
+}
+
+// maxVelue is better than allocation
+// because it is not decreased after the investment.
+export const FETCH_ACCOUNT_NESTS = gql`
+query fetchAccountNests($account: String) {
+  account(id: $account) {
+    antAllocations(where: {maxValue_gt: "0"}) {
+     project {
+        id
+      }
+    }
+  }
+}`;
+
+export interface FetchAccountNestsResult {
+  account: {
+    antAllocations: AntAllocation[]
+  }
+}
+
+// ------------------------------
+
 export interface ProjectName {
   id: string
   name: string
@@ -38,6 +65,6 @@ query fetchProjectNames($projects: [String!]!) {
   }
 }`;
 
-export interface FetchProjectsNames {
+export interface FetchProjectsNamesResult {
   projects: ProjectName[]
 }

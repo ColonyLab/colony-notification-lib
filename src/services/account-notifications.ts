@@ -1,13 +1,16 @@
+import EarlyStageService from './early-stage-service';
 import LocalStorage from './local-storage';
 import { Notification } from './types/notification';
 import { dateLimit } from './general-notifications';
 import { filterAccountNotifications } from './filters/account-notifiactions';
 
 /// Limiting this number increase performance
-const limitForAccountNotifications = 20;
+const limitForAccountNotifications = 100;
 
 /// Notifications focused on a specific account
 export default class AccountNotifications {
+  private earlyStageService: EarlyStageService;
+
   account: string;
   notifications: Notification[];
   nextTimestamp: number; // used for simplified "next" pagination
@@ -15,11 +18,16 @@ export default class AccountNotifications {
 
   private constructor() {
     this.notifications = [];
+    this.earlyStageService = new EarlyStageService();
   }
 
   // boolean is used for sync status
   public async syncNotifications(notifications: Notification[]): Promise<boolean> {
     const now = Math.floor(Date.now() / 1000);
+
+    // update account nests
+    await this.earlyStageService.fetchAccountNests(this.account);
+
     const newNotifications = await filterAccountNotifications(
       this.account,
       notifications,

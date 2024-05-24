@@ -27,16 +27,22 @@ import { NotificationService } from '@colony/colony-notification-lib/lib';
 const notificationService = await NotificationService.createInstance();
 ```
 
-#### Get last account notifications wth a limit (allows to load more using the same function):
+#### Get next account notifications with a limit (allows to load more using the same function):
 ```javascript
 // load newest 5 notifications
-const lastNotifications = await notificationService.getAccountLastNotifications(account, 5);
+const lastNotifications = await notificationService.getNextNotifications(account, 5);
 
 // load next 10 notifications
-const nextNotifications = await notificationService.getAccountLastNotifications(account, 10);
+const nextNotifications = await notificationService.getNextNotifications(account, 10);
 
-// reset last notifications
-notificationService.resetAccountLastNotifications(account);
+// reset notifications - simplified pagination
+await notificationService.resetNextNotifications(account);
+```
+
+#### Unseen Notifications
+
+```javascript
+const unseenNotifications = await notificationService.getUnseenNotifications(account);
 ```
 
 #### Sync Account Notifications
@@ -45,13 +51,10 @@ Check for if there are any new notifications for the account:
 ```javascript
 const result = await notificationService.syncAccountNotifications(account); // true/false
 
-// reset last notifications to load new ones
-notificationService.resetAccountLastNotifications(account);
-```
-
-#### Set notification timestamp, to mark the time when user has seen the notification:
-```javascript
-notifications.setNotificationTimestamp(account);
+if (result) {
+  // reset nest notifications to load new ones
+  await notificationService.resetNextNotifications(account);
+}
 ```
 
 ### General Notifications
@@ -76,34 +79,6 @@ const notifications3 = await notificationService.getRawNotificationsTo(toTimesta
 Check for if there are any new general notifications.
 ```javascript
 const result = await generalNotifications.syncNotifications(); // true/false
-```
-
-### Early Stage Service
-
-Early Stage service provide convinient static methods to interact with Early Stage Manager and its Project Nests:
-```javascript
-import { EarlyStageService } from '@colony/colony-notification-lib/lib';
-
-// checks if project exists in Early Stage Manager
-const exist = await EarlyStageService.projectExist(projectNest);
-
-// checks if account is involved in project
-const involved = await EarlyStageService.isAccountInvolved(projectNest, account);
-
-// get account allocation in project
-const allocation = await EarlyStageService.accountAllocation(projectNest, account);
-
-// get account investment in project
-const investment = await EarlyStageService.accountInvestment(projectNest, account);
-
-// get account overinvestment in project
-const overinvestment = await EarlyStageService.accountOverinvestment(projectNest, account);
-```
-
-EarlyStageService could be also instantiated and used to get project name:
-```javascript
-const earlyStageService = new EarlyStageService();
-const projectName = await earlyStageService.getProjectName(projectNest);
 ```
 
 ## Available Scripts

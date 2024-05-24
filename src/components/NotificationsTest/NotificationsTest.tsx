@@ -2,7 +2,6 @@ import React, { ReactElement, useEffect, useRef, useState } from 'react';
 
 import NotificationService from '../../services/notification-service';
 import GeneralNotifications from '../../services/general-notifications';
-import LocalStorage from '../../services/local-storage';
 import EarlyStageService from '../../services/early-stage-service';
 import Config, { Network } from '../../services/config';
 import './NotificationsTest.css';
@@ -59,43 +58,12 @@ export function NotificationsTest(): ReactElement {
     log(JSON.stringify(notifications, null, 2));
   };
 
-  // TODO remove
-  const projectExist = async () => {
-    log(`EarlyStageService: project: ${projectNest} exist?`);
-
-    const exist = await EarlyStageService.projectExist(projectNest);
-    console.log("projectExist:", exist);
-    log(exist.toString());
-  };
-
-  // TODO graph
   const isAccountInvolved = async () => {
     log(`EarlyStageService: Account ${account} involved in nest ${projectNest}?`);
 
     const involved = await EarlyStageService.isAccountInvolved(projectNest, account);
-    console.log("isAccountInvolved:", involved);
+    console.log("is account involved:", involved);
     log(involved.toString());
-  };
-
-  // TODO graph
-  const accountAllocation = async () => {
-    log(`EarlyStageService: Account ${account} allocation in nest ${projectNest}?`);
-
-    const allocation = await EarlyStageService.accountAllocation(projectNest, account);
-    console.log("allocation:", allocation);
-    log(allocation.toString());
-  };
-
-  const initAccount = async () => {
-    try {
-      log(`Initializing account ${account}`);
-
-      await notificationService.initAccount(account);
-
-      log("Account initialized");
-    } catch (error) {
-      log(`Caught error: ${error.message}`);
-    }
   };
 
   const accountNextNotifications = async () => {
@@ -213,24 +181,6 @@ export function NotificationsTest(): ReactElement {
         <div className="button-group">
           <button
             className="button"
-            onClick={initAccount}
-          >
-            Initialize Account
-          </button>
-        </div>
-
-        <div className="button-group">
-          <button
-            className="button"
-            onClick={projectExist}
-          >
-            ProjectExist
-          </button>
-        </div>
-
-        <div className="button-group">
-          <button
-            className="button"
             onClick={allNotifications}
           >
             All Notifications
@@ -243,14 +193,6 @@ export function NotificationsTest(): ReactElement {
             onClick={isAccountInvolved}
           >
             Is Involved
-          </button>
-        </div>
-        <div className="button-group">
-          <button
-            className="button"
-            onClick={accountAllocation}
-          >
-            Allocation
           </button>
         </div>
 
