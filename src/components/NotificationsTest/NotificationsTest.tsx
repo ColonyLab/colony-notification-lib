@@ -88,12 +88,12 @@ export function NotificationsTest(): ReactElement {
     }
   };
 
-  const unseenNotifications = async () => {
+  const unreadNotificationsNumber = async () => {
     try {
-      log(`Getting unseenNotifications ${account} notifications count`);
+      log(`Getting unreadNotifications ${account} notifications count`);
 
-      const count = await notificationService.unseenNotifications(account);
-      log(`Unseen: ${count.toString()}`);
+      const count = await notificationService.unreadNotificationsNumber(account);
+      log(`Unread: ${count.toString()}`);
     } catch (error) {
       log(`Caught error: ${error.message}`);
     }
@@ -217,9 +217,9 @@ export function NotificationsTest(): ReactElement {
         <div className="button-group">
           <button
             className="button"
-            onClick={unseenNotifications}
+            onClick={unreadNotificationsNumber}
           >
-            Unseen Notifications
+            Unread Notifications Number
           </button>
         </div>
 

@@ -37,10 +37,10 @@ export default class NotificationService {
     return accountNotifications;
   }
 
-  public async unseenNotifications(account: string): Promise<number> {
+  public async unreadNotificationsNumber(account: string): Promise<number> {
     const accountNotifications = await this.updateAccount(account);
 
-    return accountNotifications.unseenNotifications;
+    return accountNotifications.unreadNotificationsNumber;
   }
 
   // Simplified pagination
@@ -54,7 +54,7 @@ export default class NotificationService {
     // mark original account notifications as read
     for (const n of accountNotifications.notifications) {
       if (next.map((nn) => nn.id).includes(n.id)) {
-        n.new = false;
+        n.isUnread = false;
       }
     }
 

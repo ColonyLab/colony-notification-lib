@@ -1,5 +1,5 @@
 import { gql } from 'graphql-request';
-import { Notification } from './notification';
+import { RawNotification } from './notification';
 
 export const FETCH_NOTIFICATIONS_QUERY = gql`
 query fetchNotifications($from: Int!, $to: Int!) {
@@ -20,7 +20,7 @@ query fetchNotifications($from: Int!, $to: Int!) {
 }`;
 
 export interface FetchNotificationsResult {
-  notifications: Notification[]
+  notifications: RawNotification[]
 }
 
 // ------------------------------
@@ -52,19 +52,21 @@ export interface FetchAccountNestsResult {
 
 // ------------------------------
 
-export interface ProjectName {
+export interface ProjectData {
   id: string
   name: string
+  logo: string
 }
 
-export const FETCH_PROJECTS_NAMES_QUERY = gql`
+export const FETCH_PROJECTS_DATA_QUERY = gql`
 query fetchProjectNames($projects: [String!]!) {
   projects(where: {id_in: $projects}) {
     id
     name
+    logo
   }
 }`;
 
-export interface FetchProjectsNamesResult {
-  projects: ProjectName[]
+export interface FetchProjectsDataResult {
+  projects: ProjectData[]
 }

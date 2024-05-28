@@ -1,23 +1,23 @@
 import { constants } from 'ethers';
 import { EventType, mapEventType } from '../types/event-type';
-import { Notification } from '../types/notification';
+import { RawNotification, Notification, fromRawNotification } from '../types/notification';
 import { Phase } from '../types/project-phase';
 
 // Fill event message based on event type
 export async function filterEventMessage(
-  notifications: Notification[],
+  rawNotifications: RawNotification[],
 ): Promise<Notification[]> {
-  const filteredNotifications = [];
+  const filteredNotifications: Notification[] = [];
 
   // Helper function to push countdown set notification
-  const filterCountdownSet = async (notification: Notification) => {
+  const filterCountdownSet = async (raw: RawNotification) => {
     // update eventString based on IFPS content, if available
-    if (!notification.content) {
+    if (!raw.content) {
       return; // skip notification with null content
     }
 
     try {
-      const parsedContent = JSON.parse(notification.content.content);
+      const parsedContent = JSON.parse(raw.content.content);
 
       if (parsedContent.type !== "nextPhase") {
         return; // skip other types
@@ -33,12 +33,12 @@ export async function filterEventMessage(
         return; // skip Pending and Rejected phases
       }
 
-      notification.countdownNextPhase = phaseId;
-
-      notification.eventMessage = mapEventType(notification.eventType, {
-        actionTimestamp: notification.timestamp,
+      const eventMessage = mapEventType(raw.eventType, {
+        actionTimestamp: raw.timestamp,
         countdownNextPhase: phaseId,
       });
+
+      const notification = fromRawNotification(raw, eventMessage, phaseId);
 
       filteredNotifications.push(notification);
     } catch (error) {
@@ -47,18 +47,20 @@ export async function filterEventMessage(
   };
 
   // Helper function to push custom notification
-  const filterCustomNotification = async (notification: Notification) => {
+  const filterCustomNotification = async (raw: RawNotification) => {
     // update eventString based on IFPS content, if available
-    if (!notification.content) {
+    if (!raw.content) {
       return; // skip notification with null content
     }
 
-    notification.eventMessage = mapEventType(notification.eventType, {
-      customMessage: notification.content.content,
+    const eventMessage = mapEventType(raw.eventType, {
+      customMessage: raw.content.content,
     });
 
-    // if projectNest is zero address, it is a global notification
-    if (notification.projectNest === constants.AddressZero) {
+    const notification = fromRawNotification(raw, eventMessage);
+
+    // if project is missing, it is a global notification
+    if (notification.project === null) {
       filteredNotifications.push(notification);
       return;
     }
@@ -66,43 +68,41 @@ export async function filterEventMessage(
     filteredNotifications.push(notification);
   };
 
-  for (const notification of notifications) {
+  for (const raw of rawNotifications) {
     // console.log(
     //   "Processing notification message:", notification.eventType,
     //   ", for project:", notification.projectNest,
     // ); // dbg
 
-    switch (notification.eventType) {
-        // add token symbol to the event message from additionalData
-        case EventType.AvailableOnPortfolio:
-          notification.eventMessage = mapEventType(notification.eventType, {
-            ceTokenSymbol: JSON.parse(notification.additionalData).ceToken.symbol,
-          });
-          filteredNotifications.push(notification);
-          break;
+    switch (raw.eventType) {
+      // add token symbol to the event message from additionalData
+      case EventType.AvailableOnPortfolio: {
+        const eventMessage = mapEventType(raw.eventType, {
+          ceTokenSymbol: JSON.parse(raw.additionalData).ceToken.symbol,
+        });
 
-        // add action timestamp to the event message
-        case EventType.CountdownSet:
-          await filterCountdownSet(notification);
-          break;
-
-        case EventType.CountdownHidden:
-          break; // skip
-
-        // custom notification require more logic
-        case EventType.CustomNotification:
-          await filterCustomNotification(notification);
-          break;
-
-        default:
-          notification.eventMessage = mapEventType(notification.eventType);
-          filteredNotifications.push(notification);
+        filteredNotifications.push(fromRawNotification(raw, eventMessage));
+        break;
       }
-  }
 
-  // remove not needed any more content field
-  for (const notification of filteredNotifications) {
-    delete notification.content;
+      // add action timestamp to the event message
+      case EventType.CountdownSet:
+        await filterCountdownSet(raw);
+        break;
+
+      case EventType.CountdownHidden:
+        break; // skip
+
+      // custom notification require more logic
+      case EventType.CustomNotification:
+        await filterCustomNotification(raw);
+        break;
+
+      default: {
+        const eventMessage = mapEventType(raw.eventType);
+        filteredNotifications.push(fromRawNotification(raw, eventMessage));
+      }
+    }
   }
 
   return filteredNotifications;

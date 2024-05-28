@@ -109,8 +109,8 @@ export default class AccountNotifications {
     this.nextTimestamp = Math.floor(Date.now() / 1000);
   }
 
-  get unseenNotifications() {
-    return this.notifications.filter(n => n.new).length;
+  get unreadNotificationsNumber() {
+    return this.notifications.filter(n => n.isUnread).length;
   }
 }
 

@@ -19,8 +19,16 @@ export async function filterAccountNotifications(
 
   // Helper function to check if account is involved
   const involved = (notification: Notification): boolean => {
+    if (notification.project === undefined) {
+      return false;
+    }
+
+    if (notification.project === null) {
+      return true;
+    }
+
     return EarlyStageService.isAccountInvolved(
-      notification.projectNest,
+      notification.project.address,
       account,
     );
   };
@@ -28,8 +36,8 @@ export async function filterAccountNotifications(
   // Helper function to push custom notification
   const pushCustomNotification = async (notification: Notification) => {
 
-    // if projectNest is zero address, it is a global notification for all users
-    if (notification.projectNest === constants.AddressZero) {
+    // if project is missing, it is a global notification
+    if (notification.project === null) {
       accountNotifications.push(notification);
       return;
     }
@@ -88,9 +96,9 @@ export async function filterAccountNotifications(
     accountNotifications.map(n => n.timestamp),
   );
 
-  // determine "new" notifications
+  // determine "unread" notifications
   for (const notification of accountNotifications) {
-    notification.new = !presentTimestamps[notification.timestamp];
+    notification.isUnread = !presentTimestamps[notification.timestamp];
   }
 
   return accountNotifications;

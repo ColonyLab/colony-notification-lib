@@ -1,11 +1,11 @@
 import { GraphQLClient } from 'graphql-request';
 import Config from './config';
 import EarlyStageService from './early-stage-service';
-import { Notification } from './types/notification';
+import { RawNotification, Notification } from './types/notification';
 import { FETCH_NOTIFICATIONS_QUERY, FetchNotificationsResult } from './types/graph-queries';
 
 import { filterEventMessage } from './filters/event-message';
-import { filterProjectsNames } from './filters/project-name';
+import { filterProjectsData } from './filters/project-data';
 
 export const dateLimit = Date.UTC(2024,1,1) / 1000; // 1 Jan 2024
 
@@ -26,14 +26,14 @@ export default class GeneralNotifications {
     this.earlyStageService = new EarlyStageService();
   }
 
-  private async filterRawNotifications(notifications: Notification[]): Promise<Notification[]> {
+  private async filterRawNotifications(raw: RawNotification[]): Promise<Notification[]> {
     try {
       // unique projects
-      const projects = Array.from(new Set(notifications.map(n => n.projectNest)));
-      await this.earlyStageService.fetchProjectNames(projects); // fetch project names
+      const projects = Array.from(new Set(raw.map(n => n.projectNest)));
+      await this.earlyStageService.fetchProjectData(projects); // fetch project names and logos
 
-      notifications = await filterEventMessage(await notifications);
-      notifications = await filterProjectsNames(await notifications);
+      let notifications = await filterEventMessage(await raw);
+      notifications = await filterProjectsData(await notifications);
 
       return notifications;
     } catch (error) {
@@ -61,7 +61,7 @@ export default class GeneralNotifications {
   }
 
   // Fetch notifications from the subgraph
-  private async fetchRawNotifications(from: number, to: number): Promise<Notification[]> {
+  private async fetchRawNotifications(from: number, to: number): Promise<RawNotification[]> {
     // console.log("Fetching notifications from:", from, "to:", to);
 
     try {
@@ -81,7 +81,7 @@ export default class GeneralNotifications {
     }
   }
 
-  private async fetchNewRawNotifications(): Promise<Notification[]> {
+  private async fetchNewRawNotifications(): Promise<RawNotification[]> {
     const to = Math.floor(Date.now() / 1000);
 
     // console.log("Fetching new notifications from:", this.lastSyncTimestamp, "to:", to.toString());

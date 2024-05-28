@@ -1,17 +1,55 @@
-// Flexible notification interface for both raw and processed notifications
-// It could be splited into 2 more strict interfaces
-export interface Notification {
+import { constants } from 'ethers';
+
+/// Raw Notification retrived from notification subgraph
+export interface RawNotification {
   id: string
   timestamp: number
   projectNest: string
-  projectName?: string
   eventType: number
   additionalData: string
   content?: { // could be null
     id: string // dataURI
     content: string
   }
-  eventMessage?: string // event message
-  countdownNextPhase?: number
-  new?: boolean // true for new notification, false for past notification
+}
+
+export interface ProjectNest {
+  address: string
+  name?: string
+  logo?: string
+}
+
+/// User Notification
+export interface Notification {
+  id: string
+  timestamp: number
+  project?: ProjectNest // could be null for global notifications
+  eventType: number
+  eventMessage: string // event message
+  countdownNextPhase?: number // only count down notification
+  isUnread?: boolean
+}
+
+export function fromRawNotification(
+  raw: RawNotification,
+  eventMessage: string,
+  countdownNextPhase?: number,
+): Notification {
+
+  const notification: Notification = {
+    id: raw.id,
+    timestamp: raw.timestamp,
+    eventType: raw.eventType,
+    eventMessage,
+  };
+
+  if (raw.projectNest !== constants.AddressZero) {
+    notification.project = { address: raw.projectNest };
+  }
+
+  if (countdownNextPhase !== undefined) {
+    notification.countdownNextPhase = countdownNextPhase;
+  }
+
+  return notification;
 }
