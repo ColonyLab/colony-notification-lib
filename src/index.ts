@@ -3,7 +3,7 @@
 
 import NotificationService from "./services/notification-service";
 import GeneralNotifications from "./services/general-notifications";
-import { Notification } from "./services/types/notification";
+import { ProjectNest, RawNotification, Notification } from "./services/types/notification";
 import { EventType } from "./services/types/event-type";
 import EarlyStageService from "./services/early-stage-service";
 import LocalStorage from "./services/local-storage";
@@ -14,6 +14,9 @@ export {
   NotificationService,
   GeneralNotifications,
   EventType,
+
+  ProjectNest,
+  RawNotification,
   Notification,
 
   EarlyStageService,

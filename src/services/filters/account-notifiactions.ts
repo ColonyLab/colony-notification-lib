@@ -1,9 +1,9 @@
-import { constants } from 'ethers';
-import LocalStorage from '../local-storage';
 import EarlyStageService from '../early-stage-service';
 import { EventType } from '../types/event-type';
 import { Notification } from '../types/notification';
 import { Phase } from '../types/project-phase';
+
+import { filterUnreadNotifications } from './unread-notifications';
 
 // Filter notifications by eventType for a given account
 export async function filterAccountNotifications(
@@ -15,7 +15,7 @@ export async function filterAccountNotifications(
     return [];
   }
 
-  const accountNotifications = [];
+  let accountNotifications = [];
 
   // Helper function to check if account is involved
   const involved = (notification: Notification): boolean => {
@@ -91,15 +91,7 @@ export async function filterAccountNotifications(
       }
   }
 
-  const presentTimestamps = LocalStorage.hasNotificationTimestamps(
-    account,
-    accountNotifications.map(n => n.timestamp),
-  );
-
-  // determine "unread" notifications
-  for (const notification of accountNotifications) {
-    notification.isUnread = !presentTimestamps[notification.timestamp];
-  }
+  accountNotifications = filterUnreadNotifications(account, accountNotifications);
 
   return accountNotifications;
 }

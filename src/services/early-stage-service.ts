@@ -26,6 +26,8 @@ export default class EarlyStageService {
       return;
     }
 
+    projects = projects.map((p) => p.toLowerCase());
+
     // console.log("Fetching projects names for:", projects.length, "projects");
 
     const data = await this.graphClient.request<
@@ -42,6 +44,7 @@ export default class EarlyStageService {
   }
 
   async fetchAccountNests(account: string): Promise<void> {
+    account = account.toLowerCase();
     // console.log(`Fetching account ${account} nests`);
 
     const data = await this.graphClient.request<
@@ -65,6 +68,7 @@ export default class EarlyStageService {
   }
 
   static projectName(projectNest: string): string | null {
+    projectNest = projectNest.toLowerCase();
     if (!memCache.projectName.has(projectNest)) {
       return null;
     }
@@ -73,6 +77,7 @@ export default class EarlyStageService {
   }
 
   static projectLogo(projectNest: string): string | null {
+    projectNest = projectNest.toLowerCase();
     if (!memCache.projectLogo.has(projectNest)) {
       return null;
     }
@@ -83,6 +88,9 @@ export default class EarlyStageService {
   // Checks if the account was involved in ProjectNest by using the maxValue.
   // @returns {boolean} - The function returns true if the maxValue in given Nest is greater than 0
   static isAccountInvolved(projectNest: string, account: string): boolean {
+    projectNest = projectNest.toLowerCase();
+    account = account.toLowerCase();
+
     if (memCache.accountInvolved.has(projectNest + account)) {
       return memCache.accountInvolved.get(projectNest + account)!;
     }

@@ -1,11 +1,8 @@
 import { GraphQLClient } from 'graphql-request';
 import Config from './config';
 import EarlyStageService from './early-stage-service';
-import { RawNotification, Notification } from './types/notification';
+import { RawNotification, Notification, fromRawNotifications } from './types/notification';
 import { FETCH_NOTIFICATIONS_QUERY, FetchNotificationsResult } from './types/graph-queries';
-
-import { filterEventMessage } from './filters/event-message';
-import { filterProjectsData } from './filters/project-data';
 
 export const dateLimit = Date.UTC(2024,1,1) / 1000; // 1 Jan 2024
 
@@ -32,10 +29,7 @@ export default class GeneralNotifications {
       const projects = Array.from(new Set(raw.map(n => n.projectNest)));
       await this.earlyStageService.fetchProjectData(projects); // fetch project names and logos
 
-      let notifications = await filterEventMessage(await raw);
-      notifications = await filterProjectsData(await notifications);
-
-      return notifications;
+      return fromRawNotifications(raw);
     } catch (error) {
       console.warn("Failed to filter notifications:", error);
       return [];

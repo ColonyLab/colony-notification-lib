@@ -20,14 +20,14 @@ Config.setupConfig({
 export function NotificationsTest(): ReactElement {
 
   // const projectNest = "0x24727f6306dac64e1688093c5fec78c5c5668a34";
-  // const account = "0x085ce2bf391016c0981db049e96d2aaf2df26365";
+  const defaultAccount = "0x085cE2bF391016c0981DB049E96D2aAF2dF26365";
   const zeroAddress = "0x0000000000000000000000000000000000000000";
 
   // Jan-1-2023 0:0:0 +UTC
   const oldTimestamp = 1672531200;
 
   const [projectNest, setProjectNest] = useState(zeroAddress);
-  const [account, setAccount] = useState(zeroAddress);
+  const [account, setAccount] = useState(defaultAccount);
   const [timestamp, setTimestamp] = useState(oldTimestamp);
   const [limit, setLimit] = useState(2);
 
@@ -157,7 +157,7 @@ export function NotificationsTest(): ReactElement {
           <label className="label">
             Account
             <input
-              value={account}
+              value={defaultAccount}
               onChange={e => setAccount(e.target.value)}
               name="account"
               className="input"

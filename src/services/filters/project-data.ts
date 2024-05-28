@@ -3,7 +3,7 @@ import { Notification } from '../types/notification';
 import { EventType } from '../types/event-type';
 
 // Filter project names
-export function filterProjectsData(notifications: Notification[]): Notification[] {
+export function fillProjectsData(notifications: Notification[]): Notification[] {
   return notifications.filter((notification) => {
     if (notification.project === undefined)
       return false;

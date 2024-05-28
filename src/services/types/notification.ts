@@ -1,4 +1,6 @@
 import { constants } from 'ethers';
+import { getCountdownNextPhase, notificationEventMessage } from '../filters/event-message';
+import { fillProjectsData } from '../filters/project-data';
 
 /// Raw Notification retrived from notification subgraph
 export interface RawNotification {
@@ -30,26 +32,37 @@ export interface Notification {
   isUnread?: boolean
 }
 
-export function fromRawNotification(
-  raw: RawNotification,
-  eventMessage: string,
-  countdownNextPhase?: number,
-): Notification {
+export function fromRawNotifications(
+  raws: RawNotification[],
+): Notification[] {
+  let notifications: Notification[] = [];
 
-  const notification: Notification = {
-    id: raw.id,
-    timestamp: raw.timestamp,
-    eventType: raw.eventType,
-    eventMessage,
-  };
+  for (const raw of raws) {
+    const eventMessage = notificationEventMessage(raw);
+    if (!eventMessage) {
+      continue;
+    }
 
-  if (raw.projectNest !== constants.AddressZero) {
-    notification.project = { address: raw.projectNest };
+    const notification: Notification = {
+      id: raw.id,
+      timestamp: raw.timestamp,
+      eventType: raw.eventType,
+      eventMessage,
+    };
+
+    if (raw.projectNest !== constants.AddressZero) {
+      notification.project = { address: raw.projectNest };
+    }
+
+    const countdownNextPhase = getCountdownNextPhase(raw);
+    if (countdownNextPhase !== null) {
+      notification.countdownNextPhase = countdownNextPhase;
+    }
+
+    notifications.push(notification);
   }
 
-  if (countdownNextPhase !== undefined) {
-    notification.countdownNextPhase = countdownNextPhase;
-  }
+  notifications = fillProjectsData(notifications);
 
-  return notification;
+  return notifications;
 }

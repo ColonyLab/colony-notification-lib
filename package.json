@@ -1,6 +1,6 @@
 {
   "name": "@colony/colony-notification-lib",
-  "version": "v0.16",
+  "version": "v0.17",
   "main": "/lib/index.js",
   "types": "/lib/index.d.ts",
   "dependencies": {
