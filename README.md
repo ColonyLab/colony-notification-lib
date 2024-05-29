@@ -28,16 +28,16 @@ import { NotificationService } from '@colony/colony-notification-lib/lib';
 const notificationService = await NotificationService.createInstance();
 ```
 
-#### Get next account notifications with a limit (allows to load more using the same function):
+#### Get next account notifications with a limit and offset:
 ```javascript
 // load newest 5 notifications
-const lastNotifications = await notificationService.getNextNotifications(account, 5);
+const lastNotifications = await notificationService.getAccountNotifications(account, 5, 0);
 
 // load next 10 notifications
-const nextNotifications = await notificationService.getNextNotifications(account, 10);
+const nextNotifications = await notificationService.getAccountNotifications(account, 10, 5);
 
-// reset notifications - simplified pagination
-await notificationService.resetNextNotifications(account);
+// get length of all notifications
+await notificationService.getAccountNotificationsLength(account);
 ```
 
 #### Unread Notifications
@@ -55,14 +55,9 @@ await notificationService.markAllNotificationsAsRead(account);
 
 #### Sync Account Notifications
 
-Check for if there are any new notifications for the account:
+Synchronize account notifications with the graph. Could apply new notifications to cache.
 ```javascript
 const result = await notificationService.syncAccountNotifications(account); // true/false
-
-if (result) {
-  // reset nest notifications to load new ones
-  await notificationService.resetNextNotifications(account);
-}
 ```
 
 ### General Notifications

@@ -62,17 +62,14 @@ export default class NotificationService {
     accountNotifications.markAllNotificationsAsRead();
   }
 
-  // Simplified pagination
-  // @dev Get the next "youngest" notifications. Saves timestamp for the next call
-  public async getNextNotifications(account: string, limit: number): Promise<Notification[]> {
+  public async getAccountNotifications(account: string, limit: number, offset: number): Promise<Notification[]> {
     const accountNotifications = await this.updateAccount(account);
-    return accountNotifications.getNextNotifications(limit);
+    return accountNotifications.getNotificationsPaginated(limit, offset);
   }
 
-  // Reset the next notifications to the beginning
-  public async resetNextNotifications(account: string): Promise<void> {
+  public async getAccountNotificationsLength(account: string): Promise<number> {
     const accountNotifications = await this.updateAccount(account);
-    accountNotifications.resetNextNotifications();
+    return accountNotifications.getNotificationsLength();
   }
 
   public async syncAccountNotifications(account: string): Promise<boolean> {

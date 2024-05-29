@@ -31,6 +31,7 @@ export function NotificationsTest(): ReactElement {
   const [account, setAccount] = useState(defaultAccount);
   const [timestamp, setTimestamp] = useState(oldTimestamp);
   const [limit, setLimit] = useState(2);
+  const [offset, setOffset] = useState(0);
 
   const [notificationService, setNotificationService] = useState<NotificationService | null>(null);
   const [generalNotifications, setGeneralNotifications] = useState<GeneralNotifications | null>(null);
@@ -79,23 +80,23 @@ export function NotificationsTest(): ReactElement {
     log(firstStake.toString());
   };
 
-  const accountNextNotifications = async () => {
+  const accountNotifications = async () => {
     try {
-      log(`Getting ${limit} next notifications for account ${account}`);
+      log(`Getting notifications for account ${account}, limit: ${limit}, offset: ${offset}`);
 
-      const notifications = await notificationService.getNextNotifications(account, limit);
+      const notifications = await notificationService.getAccountNotifications(account, limit, offset);
       log(JSON.stringify(notifications, null, 2));
     } catch (error) {
       log(`Caught error: ${error.message}`);
     }
   };
 
-  const accountResetNextNotifications = async () => {
+  const accountNotificationsLenght = async () => {
     try {
-      log(`Resetting account ${account} next notifications`);
+      log(`Total ${account} notifications length`);
 
-      await notificationService.resetNextNotifications(account);
-      log("Account last notifications reset");
+      const len = await notificationService.getAccountNotificationsLength(account);
+      log("Account notifications length: " + len.toString());
     } catch (error) {
       log(`Caught error: ${error.message}`);
     }
@@ -200,19 +201,6 @@ export function NotificationsTest(): ReactElement {
           </label>
         </div>
 
-        <div className="form-group">
-          <label className="label">
-            Number of Notifications (limit)
-            <input
-              value={limit}
-              type="number"
-              onChange={e => setLimit(Number(e.target.value))}
-              name="timestamp"
-              className="input"
-            />
-          </label>
-        </div>
-
         <div className="button-group">
           <button
             className="button"
@@ -240,21 +228,48 @@ export function NotificationsTest(): ReactElement {
           </button>
         </div>
 
+        <div className="form-group">
+          <label className="label">
+            Number of Notifications (limit)
+            <input
+              value={limit}
+              type="number"
+              onChange={e => setLimit(Number(e.target.value))}
+              name="limit"
+              className="input"
+            />
+          </label>
+        </div>
+
+
+        <div className="form-group">
+          <label className="label">
+            Notifications Offset
+            <input
+              value={offset}
+              type="number"
+              onChange={e => setOffset(Number(e.target.value))}
+              name="offset"
+              className="input"
+            />
+          </label>
+        </div>
+
         <div className="button-group">
           <button
             className="button"
-            onClick={() => accountNextNotifications()}
+            onClick={accountNotifications}
           >
-            Next Notifications
+            Get Account Notifications
           </button>
         </div>
 
         <div className="button-group">
           <button
             className="button"
-            onClick={accountResetNextNotifications}
+            onClick={accountNotificationsLenght}
           >
-            Reset Next Notifications
+            Get Account Notifications Length
           </button>
         </div>
 

@@ -1,7 +1,6 @@
 import LocalStorage from './local-storage';
 import GraphService from './graph-service';
 import { Notification } from './types/notification';
-import { dateLimit } from './general-notifications';
 import { filterAccountNotifications } from './filters/account-notifiactions';
 
 /// Limiting number of all notifications for an account
@@ -14,7 +13,6 @@ const markAsReadLimit = 10 * 24 * 3600;
 export default class AccountNotifications {
   account: string;
   notifications: Notification[];
-  nextTimestamp: number; // used for simplified "next" pagination
   lastSyncTimestamp: number; // used for sync
 
   private constructor() {
@@ -53,11 +51,7 @@ export default class AccountNotifications {
     allNotifications: Notification[],
   ): Promise<void> {
     this.account = account.toLowerCase();
-
-    const now = Math.floor(Date.now() / 1000);
-
     await this.syncNotifications(allNotifications);
-    this.nextTimestamp = now;
   }
 
   // Factory method to create an instance of AccountNotifications
@@ -88,23 +82,12 @@ export default class AccountNotifications {
     return this.notifications.filter(n => n.timestamp <= timestamp);
   }
 
-  public getNextNotifications(limit: number): Notification[] {
-    // oldest notification timestamp in this sesion
-    const next = this.getNotificationsTo(this.nextTimestamp).slice(0, limit);
-
-    if (next.length === 0) {
-      this.nextTimestamp = dateLimit;
-      return [];
-    }
-
-    // -1 becouse last notification was already loaded
-    this.nextTimestamp = next[next.length - 1].timestamp - 1;
-
-    return next;
+  public getNotificationsPaginated(limit: number, offset: number): Notification[] {
+    return this.notifications.slice(offset, limit + offset);
   }
 
-  public resetNextNotifications() {
-    this.nextTimestamp = Math.floor(Date.now() / 1000);
+  public getNotificationsLength(): number {
+    return this.notifications.length;
   }
 
   // timestamp is used to mark notification unread state
