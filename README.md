@@ -39,10 +39,17 @@ const nextNotifications = await notificationService.getNextNotifications(account
 await notificationService.resetNextNotifications(account);
 ```
 
-#### Unseen Notifications
+#### Unread Notifications
 
 ```javascript
-const unseenNotifications = await notificationService.getUnseenNotifications(account);
+// get number of unread notifications
+const unreadNum = await notificationService.unreadNotificationsNumber(account);
+
+// mark individual notification as read
+await notificationService.markNotificationAsRead(account, notificationTimestamp);
+
+// mark all notifications as read
+await notificationService.markAllNotificationsAsRead(account);
 ```
 
 #### Sync Account Notifications

@@ -96,12 +96,6 @@ export default class AccountNotifications {
     // -1 becouse last notification was already loaded
     this.nextTimestamp = next[next.length - 1].timestamp - 1;
 
-    // add timestamps to local storage
-    LocalStorage.addNotificationTimestamps(
-      this.account,
-      next.map((n) => n.timestamp),
-    );
-
     return next;
   }
 
@@ -109,9 +103,31 @@ export default class AccountNotifications {
     this.nextTimestamp = Math.floor(Date.now() / 1000);
   }
 
+  // timestamp is used to mark notification unread state
+  public markNotificationsAsRead(timestamp: number) {
+    this.notifications.forEach(n => {
+      if (n.timestamp === timestamp) {
+        n.isUnread = false;
+      }
+    });
+
+    // add timestamps to local storage so it will be marked as read also after refresh
+    LocalStorage.addNotificationTimestamps(
+      this.account,
+      [timestamp],
+    );
+  }
+
+  public markAllNotificationsAsRead() {
+    this.notifications.forEach(n => (n.isUnread = false));
+
+    LocalStorage.addNotificationTimestamps(
+      this.account,
+      [...this.notifications.map(n => n.timestamp)],
+    );
+  }
+
   get unreadNotificationsNumber() {
     return this.notifications.filter(n => n.isUnread).length;
   }
 }
-
-

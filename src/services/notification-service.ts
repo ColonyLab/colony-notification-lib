@@ -39,32 +39,29 @@ export default class NotificationService {
 
   public async unreadNotificationsNumber(account: string): Promise<number> {
     const accountNotifications = await this.updateAccount(account);
-
     return accountNotifications.unreadNotificationsNumber;
+  }
+
+  public async markAccountNotificationsAsRead(account: string, timestamp: number): Promise<void> {
+    const accountNotifications = await this.updateAccount(account);
+    accountNotifications.markNotificationsAsRead(timestamp);
+  }
+
+  public async markAllAccountNotificationsAsRead(account: string): Promise<void> {
+    const accountNotifications = await this.updateAccount(account);
+    accountNotifications.markAllNotificationsAsRead();
   }
 
   // Simplified pagination
   // @dev Get the next "youngest" notifications. Saves timestamp for the next call
   public async getNextNotifications(account: string, limit: number): Promise<Notification[]> {
     const accountNotifications = await this.updateAccount(account);
-
-    const next = accountNotifications.getNextNotifications(limit)
-      .map((n) => structuredClone(n)); // make a deep copy
-
-    // mark original account notifications as read
-    for (const n of accountNotifications.notifications) {
-      if (next.map((nn) => nn.id).includes(n.id)) {
-        n.isUnread = false;
-      }
-    }
-
-    return next;
+    return accountNotifications.getNextNotifications(limit);
   }
 
   // Reset the next notifications to the beginning
   public async resetNextNotifications(account: string): Promise<void> {
     const accountNotifications = await this.updateAccount(account);
-
     accountNotifications.resetNextNotifications();
   }
 

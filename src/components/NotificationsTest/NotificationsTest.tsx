@@ -88,6 +88,28 @@ export function NotificationsTest(): ReactElement {
     }
   };
 
+  const markAccountNotificationsAsRead = async () => {
+    try {
+      log(`Marking account ${account} notifications as read`);
+
+      await notificationService.markAccountNotificationsAsRead(account, timestamp);
+      log("Account notifications marked as read");
+    } catch (error) {
+      log(`Caught error: ${error.message}`);
+    }
+  };
+
+  const markAllAccountNotificationsAsRead = async () => {
+    try {
+      log(`Marking all account ${account} notifications as read`);
+
+      await notificationService.markAllAccountNotificationsAsRead(account);
+      log("All account notifications marked as read");
+    } catch (error) {
+      log(`Caught error: ${error.message}`);
+    }
+  };
+
   const unreadNotificationsNumber = async () => {
     try {
       log(`Getting unreadNotifications ${account} notifications count`);
@@ -211,6 +233,24 @@ export function NotificationsTest(): ReactElement {
             onClick={accountResetNextNotifications}
           >
             Reset Next Notifications
+          </button>
+        </div>
+
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={markAccountNotificationsAsRead}
+          >
+            Mark As Read (timestamp)
+          </button>
+        </div>
+
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={markAllAccountNotificationsAsRead}
+          >
+            Mark All Notifications As Read
           </button>
         </div>
 
