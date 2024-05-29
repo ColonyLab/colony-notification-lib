@@ -51,7 +51,6 @@ export default class AccountNotifications {
   ): Promise<void> {
     const now = Math.floor(Date.now() / 1000);
 
-    this.account = account.toLowerCase(); // normalize account
     await this.syncNotifications(allNotifications);
     this.nextTimestamp = now;
   }

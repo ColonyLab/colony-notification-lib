@@ -9,6 +9,7 @@ const memCache = {
 
   // use projectNest + account as the key
   accountInvolved: new Map<string, boolean>(),
+  accountFirstStakeTimestamp: new Map<string, number>(),
 };
 
 export default class EarlyStageService {
@@ -67,6 +68,24 @@ export default class EarlyStageService {
     }
   }
 
+  async fetchAccountFirstStakeTimestamp(account: string): Promise<void> {
+    account = account.toLowerCase();
+
+    const data = await this.graphClient.request<
+      GraphQueries.FetchAccountFirstStakeTimestampResult
+    >
+    (GraphQueries.FETCH_ACCOUNT_FIRST_STAKE_TIMESTAMP, {
+      account,
+    }) as GraphQueries.FetchAccountFirstStakeTimestampResult;
+
+    if (!data.stakeAddedEvents || data.stakeAddedEvents.length === 0) {
+      return;
+    }
+
+    // Fill the cache with the account stake timestamp
+    memCache.accountFirstStakeTimestamp.set(account, data.stakeAddedEvents[0].createdAt);
+  }
+
   static projectName(projectNest: string): string | null {
     projectNest = projectNest.toLowerCase();
     if (!memCache.projectName.has(projectNest)) {
@@ -95,5 +114,15 @@ export default class EarlyStageService {
       return memCache.accountInvolved.get(projectNest + account)!;
     }
     return false;
+  }
+
+  // Returns the first stake timestamp for the accountInvolved
+  static accountFirstStakeTimestamp(account: string): number | null {
+    account = account.toLowerCase();
+    if (!memCache.accountFirstStakeTimestamp.has(account)) {
+      return null;
+    }
+
+    return memCache.accountFirstStakeTimestamp.get(account)!;
   }
 }

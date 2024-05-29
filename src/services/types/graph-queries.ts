@@ -70,3 +70,25 @@ query fetchProjectNames($projects: [String!]!) {
 export interface FetchProjectsDataResult {
   projects: ProjectData[]
 }
+
+// ------------------------------
+
+export interface StakeAddedEvent {
+  createdAt: number
+}
+
+export const FETCH_ACCOUNT_FIRST_STAKE_TIMESTAMP = gql`
+query fetchAccountFirstStakeTimestamp($account: String!) {
+  stakeAddedEvents(
+    where: {account: $account}
+    orderBy: createdAt
+    orderDirection: asc
+    first: 1
+  ) {
+    createdAt
+  }
+}`;
+
+export interface FetchAccountFirstStakeTimestampResult {
+  stakeAddedEvents: StakeAddedEvent[]
+}

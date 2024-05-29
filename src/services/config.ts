@@ -8,6 +8,7 @@ export type ConfigValues = {
   JSON_RPC_URL: string,
   GRAPH_NOTIFICATIONS_URL: string,
   GRAPH_EARLYSTAGE_URL: string,
+  GRAPH_STAKING_V3_URL: string,
   EARLYSTAGE_MANAGER_CONTRACT: string,
 }
 
@@ -18,7 +19,7 @@ const defaultConfig: ConfigValues = {
   JSON_RPC_URL: "https://api.avax.network/ext/bc/C/rpc",
   GRAPH_NOTIFICATIONS_URL: "https://graph.colonylab.io/subgraphs/name/colony/notifications-avalanche-production",
   GRAPH_EARLYSTAGE_URL: "https://graph.colonylab.io/subgraphs/name/colony/earlystage-avalanche-production",
-
+  GRAPH_STAKING_V3_URL: "https://graph.colonylab.io/subgraphs/name/colony/stakingV3-avalanche-production",
   EARLYSTAGE_MANAGER_CONTRACT: "0x89ab32554e7f8C260dB38448b6572c04Eb424018",
 };
 
@@ -56,6 +57,10 @@ export default class Config {
 
   public static getGraphEarlyStageUrl(): string {
     return Config.getConfig('GRAPH_EARLYSTAGE_URL');
+  }
+
+  public static getGraphStakingV3Url(): string {
+    return Config.getConfig('GRAPH_STAKING_V3_URL');
   }
 
   public static getEarlyStageManagerAddress(): string {
