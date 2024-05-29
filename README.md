@@ -11,6 +11,7 @@ Config.setupConfig({
   JSON_RPC_URL: 'https://api.avax-test.network/ext/bc/C/rpc',
   GRAPH_NOTIFICATIONS_URL: 'https://api.thegraph.com/subgraphs/colony/notifications',
   GRAPH_EARLYSTAGE_URL: 'https://api.thegraph.com/subgraphs/colony/earlystage',
+  GRAPH_STAKING_V3_URL: 'https://api.thegraph.com/subgraphs/colony/staking',
   EARLYSTAGE_MANAGER_CONTRACT: '0x7f4f8e8f3b3d6b5f4f3f3f3f3f3f3f3f3f3f3f3f',
 } as ConfigValues);
 ```
