@@ -4,8 +4,11 @@ import { Notification } from './types/notification';
 import { dateLimit } from './general-notifications';
 import { filterAccountNotifications } from './filters/account-notifiactions';
 
-/// Limiting this number increase performance
+/// Limiting number of all notifications for an account
 const limitForAccountNotifications = 100;
+
+/// Mark notifications older than 30 days as read
+const markAsReadLimit = 30 * 24 * 60 * 60;
 
 /// Notifications focused on a specific account
 export default class AccountNotifications {
@@ -33,6 +36,9 @@ export default class AccountNotifications {
 
     // notifications are sorted by timestamp from newest to oldest
     this.notifications = newNotifications.concat(this.notifications);
+
+    // mark old notifications as read
+    this.markNotificationsAsReadTo(now - markAsReadLimit);
 
     const added = newNotifications.length > 0;
     if (added) {
@@ -122,6 +128,21 @@ export default class AccountNotifications {
     LocalStorage.addNotificationTimestamps(
       this.account,
       [...this.notifications.map(n => n.timestamp)],
+    );
+  }
+
+  public markNotificationsAsReadTo(timestamp: number) {
+    this.notifications.forEach(n => {
+      if (n.timestamp <= timestamp) {
+        n.isUnread = false;
+      }
+    });
+
+    LocalStorage.addNotificationTimestamps(
+      this.account,
+      this.notifications
+        .filter(n => n.timestamp <= timestamp)
+        .map(n => n.timestamp),
     );
   }
 
