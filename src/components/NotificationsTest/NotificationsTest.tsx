@@ -13,7 +13,7 @@ Config.setupConfig({
   JSON_RPC_URL: "https://api.avax-test.network/ext/bc/C/rpc",
   GRAPH_NOTIFICATIONS_URL: "https://graph.colonylab.io/subgraphs/name/colony/notifications-fuji-develop",
   GRAPH_EARLYSTAGE_URL: "https://graph.colonylab.io/subgraphs/name/colony/earlystage-fuji-develop",
-  GRAPH_STAKING_V3_URL: "https://graph.colonylab.io/subgraphs/name/colony/stakingV3-fuji-develop/",
+  GRAPH_STAKING_V3_URL: "https://graph.colonylab.io/subgraphs/name/colony/stakingV3-fuji-develop",
 
   EARLYSTAGE_MANAGER_CONTRACT: "0x425C95aB13d2caae4C38c86575fc3EF5Ad7cED4f",
 });

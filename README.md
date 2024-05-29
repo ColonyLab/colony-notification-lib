@@ -76,10 +76,10 @@ const generalNotifications = await GeneralNotifications.createInstance();
 
 #### Get general notifications for a specific time range:
 ```javascript
-const notifications = await GeneralNotifications.getNotifications(fromTimestamp, toTimestamp);
-const notifications2 = await notificationService.getRawNotificationsSince(fromTimestamp);
+const notifications = await generalNotifications.getNotifications(fromTimestamp, toTimestamp);
+const notifications2 = await generalNotifications.getRawNotificationsSince(fromTimestamp);
 
-const notifications3 = await notificationService.getRawNotificationsTo(toTimestamp);
+const notifications3 = await generalNotifications.getRawNotificationsTo(toTimestamp);
 ```
 
 #### Sync General Notifications
