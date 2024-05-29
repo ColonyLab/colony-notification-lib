@@ -7,8 +7,8 @@ import { filterAccountNotifications } from './filters/account-notifiactions';
 /// Limiting number of all notifications for an account
 const limitForAccountNotifications = 100;
 
-/// Mark notifications older than 30 days as read
-const markAsReadLimit = 30 * 24 * 60 * 60;
+/// Mark notifications older than 10 days as read
+const markAsReadLimit = 10 * 24 * 3600;
 
 /// Notifications focused on a specific account
 export default class AccountNotifications {
