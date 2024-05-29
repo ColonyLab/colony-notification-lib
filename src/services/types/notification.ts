@@ -25,7 +25,7 @@ export interface ProjectNest {
 export interface Notification {
   id: string
   timestamp: number
-  project?: ProjectNest // could be null for global notifications
+  project?: ProjectNest // could be undefined for global notifications
   eventType: number
   eventMessage: string // event message
   countdownNextPhase?: number // only count down notification

@@ -1,5 +1,6 @@
 import Config from './config';
 import { GraphQLClient } from 'graphql-request';
+import { RawNotification } from './types/notification';
 import * as GraphQueries from './types/graph-queries';
 
 // this simple cache is used to reduce the number of calls to the blockchain
@@ -12,26 +13,57 @@ const memCache = {
   accountFirstStakeTimestamp: new Map<string, number>(),
 };
 
-export default class EarlyStageService {
-  graphClient: GraphQLClient;
+export default class GraphService {
+  static NotificationsClient(): GraphQLClient {
+    return new GraphQLClient(Config.getConfig(
+      'GRAPH_NOTIFICATIONS_URL',
+    ));
+  }
 
-  constructor(){
-    this.graphClient = new GraphQLClient(Config.getConfig(
+  static EarlyStageClient(): GraphQLClient {
+    return new GraphQLClient(Config.getConfig(
       'GRAPH_EARLYSTAGE_URL',
     ));
   }
 
+  static StakingV3Client(): GraphQLClient {
+    return new GraphQLClient(Config.getConfig(
+      'GRAPH_STAKING_V3_URL',
+    ));
+  }
+
+  // Fetch notifications from the subgraph (dont save them in the cache)
+  static async fetchRawNotifications(from: number, to: number): Promise<RawNotification[]> {
+    // console.log("Fetching notifications from:", from, "to:", to);
+
+    try {
+      const data = await GraphService.NotificationsClient().request<
+        GraphQueries.FetchNotificationsResult
+      >
+      (GraphQueries.FETCH_NOTIFICATIONS_QUERY, {
+        from,
+        to,
+      }) as GraphQueries.FetchNotificationsResult;
+
+      return data.notifications;
+
+    } catch (error) {
+      console.warn("Failed to fetch notifications:", error);
+      return [];
+    }
+  }
+
   // Fetch names from the subgraph
-  async fetchProjectData(projects: string[]): Promise<void> {
+  static async fetchProjectData(projects: string[]): Promise<void> {
+    // console.log("Fetching projects names for:", projects.length, "projects");
+
     if (projects.length === 0) {
       return;
     }
 
     projects = projects.map((p) => p.toLowerCase());
 
-    // console.log("Fetching projects names for:", projects.length, "projects");
-
-    const data = await this.graphClient.request<
+    const data = await GraphService.EarlyStageClient().request<
       GraphQueries.FetchProjectsDataResult
     >
     (GraphQueries.FETCH_PROJECTS_DATA_QUERY, {
@@ -44,11 +76,11 @@ export default class EarlyStageService {
     }
   }
 
-  async fetchAccountNests(account: string): Promise<void> {
+  static async fetchAccountNests(account: string): Promise<void> {
     account = account.toLowerCase();
     // console.log(`Fetching account ${account} nests`);
 
-    const data = await this.graphClient.request<
+    const data = await GraphService.EarlyStageClient().request<
       GraphQueries.FetchAccountNestsResult
     >
     (GraphQueries.FETCH_ACCOUNT_NESTS, {
@@ -68,10 +100,12 @@ export default class EarlyStageService {
     }
   }
 
-  async fetchAccountFirstStakeTimestamp(account: string): Promise<void> {
+  static async fetchAccountFirstStakeTimestamp(account: string): Promise<number | null> {
     account = account.toLowerCase();
+    // console.log(`Fetching account ${account} first stake timestamp`);
 
-    const data = await this.graphClient.request<
+
+    const data = await GraphService.StakingV3Client().request<
       GraphQueries.FetchAccountFirstStakeTimestampResult
     >
     (GraphQueries.FETCH_ACCOUNT_FIRST_STAKE_TIMESTAMP, {
@@ -79,12 +113,16 @@ export default class EarlyStageService {
     }) as GraphQueries.FetchAccountFirstStakeTimestampResult;
 
     if (!data.stakeAddedEvents || data.stakeAddedEvents.length === 0) {
-      return;
+      return null;
     }
 
     // Fill the cache with the account stake timestamp
     memCache.accountFirstStakeTimestamp.set(account, data.stakeAddedEvents[0].createdAt);
+
+    return GraphService.accountFirstStakeTimestamp(account);
   }
+
+  // ---- Cache
 
   static projectName(projectNest: string): string | null {
     projectNest = projectNest.toLowerCase();

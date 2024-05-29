@@ -2,7 +2,7 @@ import React, { ReactElement, useEffect, useRef, useState } from 'react';
 
 import NotificationService from '../../services/notification-service';
 import GeneralNotifications from '../../services/general-notifications';
-import EarlyStageService from '../../services/early-stage-service';
+import GraphService from '../../services/graph-service';
 import Config, { Network } from '../../services/config';
 import './NotificationsTest.css';
 
@@ -60,11 +60,23 @@ export function NotificationsTest(): ReactElement {
   };
 
   const isAccountInvolved = async () => {
-    log(`EarlyStageService: Account ${account} involved in nest ${projectNest}?`);
+    log(`GraphService: Account ${account} involved in nest ${projectNest}?`);
 
-    const involved = EarlyStageService.isAccountInvolved(projectNest, account);
+    GraphService.fetchAccountNests(account);
+    const involved = GraphService.isAccountInvolved(projectNest, account);
     console.log("is account involved:", involved);
     log(involved.toString());
+  };
+
+  const accountFirstStake = async () => {
+    log(`GraphService: Account ${account} first stake`);
+
+    let firstStake: number | string = await GraphService.fetchAccountFirstStakeTimestamp(account);
+    if (firstStake === null) {
+      firstStake = "null";
+    }
+    console.log("first stake timestamp:", firstStake);
+    log(firstStake.toString());
   };
 
   const accountNextNotifications = async () => {
@@ -180,7 +192,7 @@ export function NotificationsTest(): ReactElement {
           <label className="label">
             Account
             <input
-              value={defaultAccount}
+              value={account}
               onChange={e => setAccount(e.target.value)}
               name="account"
               className="input"
@@ -216,6 +228,15 @@ export function NotificationsTest(): ReactElement {
             onClick={isAccountInvolved}
           >
             Is Involved
+          </button>
+        </div>
+
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={accountFirstStake}
+          >
+            Account First Stake
           </button>
         </div>
 

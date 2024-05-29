@@ -52,7 +52,7 @@ function customNotificationEventMessage(raw: RawNotification): string | null {
     return null; // skip notification with null content
   }
 
-  return  mapEventType(raw.eventType, {
+  return mapEventType(raw.eventType, {
     customMessage: raw.content.content,
   });
 }

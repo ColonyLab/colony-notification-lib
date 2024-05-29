@@ -5,7 +5,7 @@ import NotificationService from "./services/notification-service";
 import GeneralNotifications from "./services/general-notifications";
 import { ProjectNest, RawNotification, Notification } from "./services/types/notification";
 import { EventType } from "./services/types/event-type";
-import EarlyStageService from "./services/early-stage-service";
+import GraphService from "./services/graph-service";
 import LocalStorage from "./services/local-storage";
 import BlockchainService from "./services/blockchain-service";
 import Config, { Network, ConfigValues } from "./services/config";
@@ -19,7 +19,7 @@ export {
   RawNotification,
   Notification,
 
-  EarlyStageService,
+  GraphService,
   LocalStorage,
   BlockchainService,
 

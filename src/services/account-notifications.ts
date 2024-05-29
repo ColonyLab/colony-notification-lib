@@ -1,5 +1,5 @@
-import EarlyStageService from './early-stage-service';
 import LocalStorage from './local-storage';
+import GraphService from './graph-service';
 import { Notification } from './types/notification';
 import { dateLimit } from './general-notifications';
 import { filterAccountNotifications } from './filters/account-notifiactions';
@@ -9,8 +9,6 @@ const limitForAccountNotifications = 100;
 
 /// Notifications focused on a specific account
 export default class AccountNotifications {
-  private earlyStageService: EarlyStageService;
-
   account: string;
   notifications: Notification[];
   nextTimestamp: number; // used for simplified "next" pagination
@@ -18,7 +16,6 @@ export default class AccountNotifications {
 
   private constructor() {
     this.notifications = [];
-    this.earlyStageService = new EarlyStageService();
   }
 
   // boolean is used for sync status
@@ -26,7 +23,7 @@ export default class AccountNotifications {
     const now = Math.floor(Date.now() / 1000);
 
     // update account nests
-    await this.earlyStageService.fetchAccountNests(this.account);
+    await GraphService.fetchAccountNests(this.account);
 
     const newNotifications = await filterAccountNotifications(
       this.account,
@@ -49,6 +46,8 @@ export default class AccountNotifications {
     account: string,
     allNotifications: Notification[],
   ): Promise<void> {
+    this.account = account.toLowerCase();
+
     const now = Math.floor(Date.now() / 1000);
 
     await this.syncNotifications(allNotifications);

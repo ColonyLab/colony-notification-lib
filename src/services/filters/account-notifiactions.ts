@@ -1,4 +1,4 @@
-import EarlyStageService from '../early-stage-service';
+import GraphService from '../graph-service';
 import { EventType } from '../types/event-type';
 import { Notification } from '../types/notification';
 import { Phase } from '../types/project-phase';
@@ -27,7 +27,7 @@ export async function filterAccountNotifications(
       return true;
     }
 
-    return EarlyStageService.isAccountInvolved(
+    return GraphService.isAccountInvolved(
       notification.project.address,
       account,
     );
@@ -35,9 +35,8 @@ export async function filterAccountNotifications(
 
   // Helper function to push custom notification
   const pushCustomNotification = async (notification: Notification) => {
-
     // if project is missing, it is a global notification
-    if (notification.project === null) {
+    if (notification.project === undefined) {
       accountNotifications.push(notification);
       return;
     }

@@ -1,19 +1,16 @@
-import EarlyStageService from './early-stage-service';
+import GraphService from './graph-service';
 import GeneralNotifications from './general-notifications';
 import AccountNotifications from './account-notifications';
 import { Notification } from './types/notification';
 
 /// Notification Service
 export default class NotificationService {
-  private earlyStageService: EarlyStageService;
   private generalNotifications: GeneralNotifications;
-
   private accounts: Map<string, AccountNotifications> = new Map();
 
   private constructor(){}
 
   private async init(): Promise<void> {
-    this.earlyStageService = new EarlyStageService();
     this.generalNotifications = await GeneralNotifications.createInstance();
   }
 
@@ -34,11 +31,10 @@ export default class NotificationService {
     }
 
     // update account info about first stake
-    await this.earlyStageService.fetchAccountFirstStakeTimestamp(account);
-    const firstStakeTimestamp = EarlyStageService.accountFirstStakeTimestamp(account);
+    const firstStakeTimestamp = await GraphService.fetchAccountFirstStakeTimestamp(account);
 
     let notifications: Notification[] = [];
-    if (firstStakeTimestamp) {
+    if (firstStakeTimestamp) { // could be null for new accounts
       notifications = this.generalNotifications.getNotificationsSince(firstStakeTimestamp);
     }
 
