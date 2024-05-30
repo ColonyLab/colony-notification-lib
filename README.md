@@ -19,45 +19,53 @@ Config.setupConfig({
 ### Notification Service
 
 #### Import
+
 ```javascript
 import { NotificationService } from '@colony/colony-notification-lib/lib';
 ```
 
 #### Create notification service:
+
 ```javascript
 const notificationService = await NotificationService.createInstance();
 ```
 
-#### Get next account notifications with a limit and offset:
+#### Create Account Notification Stream
+
 ```javascript
-// load newest 5 notifications
-const lastNotifications = await notificationService.getAccountNotifications(account, 5, 0);
+const pageSize = 4;
 
-// load next 10 notifications
-const nextNotifications = await notificationService.getAccountNotifications(account, 10, 5);
+// create account notifications stream
+const notificationStream = notificationService.createStream(account, pageSize, (notifications) => {
+  // hook to handle notifications
+  // stream is syncing with the graph and will call the hook with new notifications
+});
 
-// get length of all notifications
-await notificationService.getAccountNotificationsLength(account);
+// load more notifications
+notificationStream.loadMore(); // hook will be called with 4 notifications
+notificationStream.loadMore(); // hook will be called with 8 notifications
+
+// reset stream
+notificationStream.reset(pageSize?); // optional pageSize parameter
+
+// get total notifications length
+const len = notificationStream.getNotificationsLength()
+
+// Call this method when you need to stop the syncing, e.g., when the component unmounts
+notificationStream.stopSyncing();
 ```
 
 #### Unread Notifications
 
 ```javascript
 // get number of unread notifications
-const unreadNum = await notificationService.unreadNotificationsNumber(account);
+const unreadNum = notificationStream.unreadNotificationsNumber(account);
 
 // mark individual notification as read
-await notificationService.markNotificationAsRead(account, notificationTimestamp);
+notificationStream.markNotificationAsRead(notificationTimestamp);
 
 // mark all notifications as read
-await notificationService.markAllNotificationsAsRead(account);
-```
-
-#### Sync Account Notifications
-
-Synchronize account notifications with the graph. Could apply new notifications to cache.
-```javascript
-const result = await notificationService.syncAccountNotifications(account); // true/false
+notificationStream.markAllNotificationsAsRead();
 ```
 
 ### General Notifications
@@ -71,15 +79,16 @@ const generalNotifications = await GeneralNotifications.createInstance();
 
 #### Get general notifications for a specific time range:
 ```javascript
-const notifications = await generalNotifications.getNotifications(fromTimestamp, toTimestamp);
-const notifications2 = await generalNotifications.getRawNotificationsSince(fromTimestamp);
+const notifications = generalNotifications.getNotifications(fromTimestamp, toTimestamp);
+const notifications2 = generalNotifications.getRawNotificationsSince(fromTimestamp);
 
-const notifications3 = await generalNotifications.getRawNotificationsTo(toTimestamp);
+const notifications3 = generalNotifications.getRawNotificationsTo(toTimestamp);
 ```
 
-#### Sync General Notifications
+#### Manual Sync General Notifications
 
 Check for if there are any new general notifications.
+New notifications will be added to the general notifications cache.
 ```javascript
 const result = await generalNotifications.syncNotifications(); // true/false
 ```

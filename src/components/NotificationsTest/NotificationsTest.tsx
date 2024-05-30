@@ -1,8 +1,9 @@
-import React, { ReactElement, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-import NotificationService from '../../services/notification-service';
-import GeneralNotifications from '../../services/general-notifications';
 import GraphService from '../../services/graph-service';
+import GeneralNotifications from '../../services/general-notifications';
+import NotificationStream from '../../services/notification-stream';
+import NotificationService from '../../services/notification-service';
 import Config, { Network } from '../../services/config';
 import './NotificationsTest.css';
 
@@ -18,7 +19,8 @@ Config.setupConfig({
   EARLYSTAGE_MANAGER_CONTRACT: "0x425C95aB13d2caae4C38c86575fc3EF5Ad7cED4f",
 });
 
-export function NotificationsTest(): ReactElement {
+export function NotificationsTest(): React.FC {
+  const defaultPageSize = 4;
 
   // const projectNest = "0x24727f6306dac64e1688093c5fec78c5c5668a34";
   const defaultAccount = "0x085cE2bF391016c0981DB049E96D2aAF2dF26365";
@@ -30,11 +32,11 @@ export function NotificationsTest(): ReactElement {
   const [projectNest, setProjectNest] = useState(zeroAddress);
   const [account, setAccount] = useState(defaultAccount);
   const [timestamp, setTimestamp] = useState(oldTimestamp);
-  const [limit, setLimit] = useState(2);
-  const [offset, setOffset] = useState(0);
+  const [pageSize, setPageSize] = useState(defaultPageSize);
 
-  const [notificationService, setNotificationService] = useState<NotificationService | null>(null);
   const [generalNotifications, setGeneralNotifications] = useState<GeneralNotifications | null>(null);
+  const [notificationService, setNotificationService] = useState<NotificationService | null>(null);
+  const [notificationStream, setNotificationStream] = useState<NotificationStream | null>(null);
 
   useEffect(() => {
     const initializeServices = async () => {
@@ -44,6 +46,7 @@ export function NotificationsTest(): ReactElement {
 
         setGeneralNotifications(generalNotifications);
         setNotificationService(notificationService);
+
         log("Services initialized");
       } catch (error) {
         console.error("Error initializing services:", error);
@@ -53,9 +56,26 @@ export function NotificationsTest(): ReactElement {
     initializeServices();
   }, []);
 
-  const allNotifications = async () => {
+  useEffect(() => {
+    const setupNotificationStream = async () => {
+      if (notificationService) {
+        const stream = await notificationService.createStream(account, pageSize, (notifications) => {
+          console.log(`Notification Stream for account ${account}:`);
+          log(JSON.stringify(notifications, null, 2));
+        });
+
+        setNotificationStream(stream);
+
+        console.log("Notification stream set up");
+      }
+    };
+
+    setupNotificationStream();
+  }, [account, pageSize, notificationService]);
+
+  const allNotifications = () => {
     log(`Getting all notifications for timestamp ${timestamp}`);
-    const notifications = await generalNotifications.getNotificationsSince(timestamp);
+    const notifications = generalNotifications.getNotificationsSince(timestamp);
     console.log("all notifications:", notifications);
     log(JSON.stringify(notifications, null, 2));
   };
@@ -63,7 +83,7 @@ export function NotificationsTest(): ReactElement {
   const isAccountInvolved = async () => {
     log(`GraphService: Account ${account} involved in nest ${projectNest}?`);
 
-    GraphService.fetchAccountNests(account);
+    await GraphService.fetchAccountNests(account);
     const involved = GraphService.isAccountInvolved(projectNest, account);
     console.log("is account involved:", involved);
     log(involved.toString());
@@ -80,22 +100,26 @@ export function NotificationsTest(): ReactElement {
     log(firstStake.toString());
   };
 
-  const accountNotifications = async () => {
-    try {
-      log(`Getting notifications for account ${account}, limit: ${limit}, offset: ${offset}`);
-
-      const notifications = await notificationService.getAccountNotifications(account, limit, offset);
-      log(JSON.stringify(notifications, null, 2));
-    } catch (error) {
-      log(`Caught error: ${error.message}`);
+  const handleLoadMore = () => {
+    log(`Loading more notifications for account ${account}`);
+    if (notificationStream) {
+      notificationStream.loadMore();
     }
   };
 
-  const accountNotificationsLenght = async () => {
+  const handleReset = () => {
+    log(`Resetting notification stream for account ${account}, pageSize: ${pageSize}`);
+    log(`Loading more notifications for account ${account}`);
+    if (notificationStream) {
+      notificationStream.reset(pageSize);
+    }
+  };
+
+  const accountNotificationsLenght = () => {
     try {
       log(`Total ${account} notifications length`);
+      const len = notificationStream.getNotificationsLength();
 
-      const len = await notificationService.getAccountNotificationsLength(account);
       log("Account notifications length: " + len.toString());
     } catch (error) {
       log(`Caught error: ${error.message}`);
@@ -104,10 +128,10 @@ export function NotificationsTest(): ReactElement {
 
   const markAccountNotificationsAsRead = async () => {
     try {
-      log(`Marking account ${account} notifications as read`);
+      log(`Marking account ${account} notification with timestamp ${timestamp} as read`);
 
-      await notificationService.markAccountNotificationsAsRead(account, timestamp);
-      log("Account notifications marked as read");
+      notificationStream.markNotificationAsRead(timestamp);
+      log("Account notification marked as read");
     } catch (error) {
       log(`Caught error: ${error.message}`);
     }
@@ -117,7 +141,7 @@ export function NotificationsTest(): ReactElement {
     try {
       log(`Marking all account ${account} notifications as read`);
 
-      await notificationService.markAllAccountNotificationsAsRead(account);
+      notificationStream.markAllNotificationsAsRead();
       log("All account notifications marked as read");
     } catch (error) {
       log(`Caught error: ${error.message}`);
@@ -128,20 +152,8 @@ export function NotificationsTest(): ReactElement {
     try {
       log(`Getting unreadNotifications ${account} notifications count`);
 
-      const count = await notificationService.unreadNotificationsNumber(account);
+      const count = notificationStream.unreadNotificationsNumber;
       log(`Unread: ${count.toString()}`);
-    } catch (error) {
-      log(`Caught error: ${error.message}`);
-    }
-  };
-
-  const syncAccountNotifications = async () => {
-    try {
-      log(`Syncing notifications for account ${account}`);
-
-      const result = await notificationService.syncAccountNotifications(account);
-      console.log("account sync:", result);
-      log(result.toString());
     } catch (error) {
       log(`Caught error: ${error.message}`);
     }
@@ -201,6 +213,19 @@ export function NotificationsTest(): ReactElement {
           </label>
         </div>
 
+        <div className="form-group">
+          <label className="label">
+            Notifications Page Size
+            <input
+              value={pageSize}
+              type="number"
+              onChange={e => setPageSize(Number(e.target.value))}
+              name="limit"
+              className="input"
+            />
+          </label>
+        </div>
+
         <div className="button-group">
           <button
             className="button"
@@ -228,39 +253,21 @@ export function NotificationsTest(): ReactElement {
           </button>
         </div>
 
-        <div className="form-group">
-          <label className="label">
-            Number of Notifications (limit)
-            <input
-              value={limit}
-              type="number"
-              onChange={e => setLimit(Number(e.target.value))}
-              name="limit"
-              className="input"
-            />
-          </label>
-        </div>
-
-
-        <div className="form-group">
-          <label className="label">
-            Notifications Offset
-            <input
-              value={offset}
-              type="number"
-              onChange={e => setOffset(Number(e.target.value))}
-              name="offset"
-              className="input"
-            />
-          </label>
+        <div className="button-group">
+          <button
+            className="button"
+            onClick={handleLoadMore}
+          >
+            Load More Account Notifications
+          </button>
         </div>
 
         <div className="button-group">
           <button
             className="button"
-            onClick={accountNotifications}
+            onClick={handleReset}
           >
-            Get Account Notifications
+            Reset Account Notification Stream
           </button>
         </div>
 
@@ -299,16 +306,6 @@ export function NotificationsTest(): ReactElement {
             Unread Notifications Number
           </button>
         </div>
-
-        <div className="button-group">
-          <button
-            className="button"
-            onClick={syncAccountNotifications}
-          >
-            Sync Account Notifications
-          </button>
-        </div>
-
       </div>
 
       <div className="console">
