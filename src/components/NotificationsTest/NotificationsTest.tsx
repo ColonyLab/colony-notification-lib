@@ -59,9 +59,11 @@ export function NotificationsTest(): React.FC {
   useEffect(() => {
     const setupNotificationStream = async () => {
       if (notificationService) {
-        const stream = await notificationService.createStream(account, pageSize, (notifications) => {
+        const stream = await notificationService.createStream(account, (notifications) => {
           console.log(`Notification Stream for account ${account}:`);
           log(JSON.stringify(notifications, null, 2));
+        }, {
+          pageSize,
         });
 
         setNotificationStream(stream);

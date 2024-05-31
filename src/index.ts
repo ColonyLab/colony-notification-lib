@@ -2,6 +2,7 @@
 // Contains the part of the code that is exposed as a Libary API
 
 import NotificationService from "./services/notification-service";
+import NotificationStream, { NotificationStreamOptions } from "./services/notification-stream";
 import GeneralNotifications from "./services/general-notifications";
 import { ProjectNest, RawNotification, Notification } from "./services/types/notification";
 import { EventType } from "./services/types/event-type";
@@ -12,6 +13,8 @@ import Config, { Network, ConfigValues } from "./services/config";
 
 export {
   NotificationService,
+  NotificationStream,
+  NotificationStreamOptions,
   GeneralNotifications,
   EventType,
 

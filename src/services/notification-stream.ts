@@ -4,13 +4,27 @@ import GraphService from './graph-service';
 import { Notification } from './types/notification';
 import { filterAccountNotifications } from './filters/account-notifiactions';
 
-/// Limiting number of all notifications for an account
-const limitForAccountNotifications = 500;
+/**
+ * Map optional parameters for notification stream.
+ * @param limitForAccountNotifications - Limiting number of all notifications for an account
+ * @param markAsReadLimit - Mark notifications older than as read
+ * @param syncInterval - interval in seconds used for synchronizing new notifications
+ * @param pageSize - page size for loading notifications
+ */
+export type NotificationStreamOptions = {
+  limitForAccountNotifications?: number,
+  markAsReadLimit?: number,
+  syncInterval?: number,
+  pageSize?: number,
+}
 
-/// Mark notifications older than 10 days as read
-const markAsReadLimit = 10 * 24 * 3600;
+const defaultNotificationStreamOptions: Required<NotificationStreamOptions> = {
+  limitForAccountNotifications: 500,
+  markAsReadLimit: 10 * 24 * 3600, // 10 days
+  syncInterval: 60, // 1 minute
+  pageSize: 4,
+};
 
-const syncInterval = 60; // 1 minute
 
 /// Notifications Stream created for a specific account
 export default class NotificationStream {
@@ -19,15 +33,19 @@ export default class NotificationStream {
   private generalNotifications: GeneralNotifications;
   private notifications: Notification[];
 
-  private account: string;
   private firstStakeTimestamp: number | null;
 
-  private pageSize: number;
+  public account: string;
+  public pageSize: number;
   private loadSize: number; // pageSize * loadMore + new synced notifications
 
   private notificationsHook: (notifications: Notification[]) => void;
   private lastSyncTimestamp: number; // used for sync
   private syncIntervalId: NodeJS.Timeout | null = null;
+
+  public limitForAccountNotifications: number;
+  public markAsReadLimit: number;
+  public syncInterval: number;
 
   // --- initialization ---
 
@@ -62,16 +80,16 @@ export default class NotificationStream {
     const newNotifications = await filterAccountNotifications(
       this.account,
       notifications,
-      limitForAccountNotifications,
+      this.limitForAccountNotifications,
     );
 
     // notifications are sorted by timestamp from newest to oldest
     this.notifications = newNotifications
       .concat(this.notifications)
-      .slice(0, limitForAccountNotifications);
+      .slice(0, this.limitForAccountNotifications);
 
     // mark old notifications as read
-    this.markNotificationsAsReadTo(now - markAsReadLimit);
+    this.markNotificationsAsReadTo(now - this.markAsReadLimit);
 
     const added = newNotifications.length > 0;
     if (added) {
@@ -81,17 +99,25 @@ export default class NotificationStream {
     return newNotifications;
   }
 
+  private setOptions(options?: NotificationStreamOptions): void {
+    const mergedOptions = { ...defaultNotificationStreamOptions, ...options };
+
+    this.limitForAccountNotifications = mergedOptions.limitForAccountNotifications;
+    this.markAsReadLimit = mergedOptions.markAsReadLimit;
+    this.syncInterval = mergedOptions.syncInterval;
+    this.reset(mergedOptions.pageSize);
+  }
+
   private async init(
     generalNotifications: GeneralNotifications,
     account: string,
-    pageSize: number,
     notificationsHook: (notifications: Notification[]) => void,
+    options?: NotificationStreamOptions,
   ): Promise<void> {
     this.generalNotifications = generalNotifications;
-    this.pageSize = pageSize;
     this.notificationsHook = notificationsHook;
 
-    this.reset(pageSize);
+    this.setOptions(options);
     await this.setupAccount(account);
     await this.syncNotifications();
 
@@ -102,16 +128,16 @@ export default class NotificationStream {
   public static async createStream(
     generalNotifications: GeneralNotifications,
     account: string,
-    pageSize: number,
     notificationsHook: (notifications: Notification[]) => void,
+    options?: NotificationStreamOptions,
   ): Promise<NotificationStream> {
 
     const instance = new NotificationStream();
     await instance.init(
       generalNotifications,
       account,
-      pageSize,
       notificationsHook,
+      options,
     );
 
     return instance;
@@ -184,7 +210,7 @@ export default class NotificationStream {
         this.loadSize += newNotifications.length;
         this.notificationsHook(this.notifications.slice(0, this.loadSize));
       }
-    }, syncInterval * 1000); // seconds -> milliseconds
+    }, this.syncInterval * 1000); // seconds -> milliseconds
   }
 
   private clearSyncInterval(): void {

@@ -33,12 +33,17 @@ const notificationService = await NotificationService.createInstance();
 #### Create Account Notification Stream
 
 ```javascript
-const pageSize = 4;
+const options = {
+  pageSize: 4,
+  syncInterval: 120, // 2 minutes
+}
 
 // create account notifications stream
-const notificationStream = notificationService.createStream(account, pageSize, (notifications) => {
+const notificationStream = notificationService.createStream(account, (notifications) => {
   // hook to handle notifications
   // stream is syncing with the graph and will call the hook with new notifications
+}, {
+  options
 });
 
 // load more notifications

@@ -1,6 +1,7 @@
 import GeneralNotifications from './general-notifications';
-import NotificationStream from './notification-stream';
+import NotificationStream, { NotificationStreamOptions } from './notification-stream';
 import { Notification } from './types/notification';
+
 
 /// Notification Service
 export default class NotificationService {
@@ -22,14 +23,14 @@ export default class NotificationService {
 
   public async createStream(
     account: string,
-    pageSize: number,
     notificationsHook: (notifications: Notification[]) => void,
+    options?: NotificationStreamOptions,
   ): Promise<NotificationStream> {
     return NotificationStream.createStream(
       this.generalNotifications,
       account,
-      pageSize,
       notificationsHook,
+      options,
     );
   }
 }
