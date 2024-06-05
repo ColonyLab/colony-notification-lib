@@ -72,6 +72,11 @@ export default class NotificationStream {
       this.lastSyncTimestamp = this.firstStakeTimestamp; // first sync
     }
 
+    // if wallet is not staking return empty notifications list
+    if(this.lastSyncTimestamp === 0){
+      return [];
+    }
+
     const notifications = this.generalNotifications.getNotificationsSince(this.lastSyncTimestamp);
 
     // update account nests in the GraphService
