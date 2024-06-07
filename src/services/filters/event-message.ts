@@ -39,8 +39,10 @@ function countdownSetEventMessage(
     return null; // skip Pending and Rejected phases
   }
 
+  const additionalData = JSON.parse(raw.additionalData);
+
   return mapEventType(raw.eventType, {
-    actionTimestamp: raw.timestamp,
+    actionTimestamp: additionalData.CountdownSet.actionTimestamp,
     countdownNextPhase: phaseId,
   });
 }

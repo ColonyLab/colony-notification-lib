@@ -76,7 +76,7 @@ export function mapEventType(
 
       const phase = mapProjectPhase(optional!.countdownNextPhase!);
 
-      const date = new Date(optional!.actionTimestamp! * 1000).toISOString();
+      const date = new Date(optional!.actionTimestamp! * 1000).toLocaleString();
 
       return `${phase} countdown set to ${date}`;
       break;
